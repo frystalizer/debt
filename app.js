@@ -2,7 +2,7 @@ const INITIAL_DEBT = 300000000;
 const DAILY_RATE = 3450000; 
 const NEXT_MILESTONE_TARGET = 200000000; 
 const YEAR = 2026;
-const MONTH = 6; // July (0-indexed in JS)
+const MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
 
 // Load saved checked days from browser localStorage
@@ -15,7 +15,7 @@ function loadSavedDays() {
       console.error("Failed to parse local storage", e);
     }
   }
-  // Default checked days (15th through 24th workdays)
+  // Default active days (July 15–24 workdays)
   return new Set([15, 16, 17, 20, 21, 22, 23, 24]);
 }
 
@@ -42,7 +42,7 @@ function renderCalendar() {
   const totalDays = new Date(YEAR, MONTH + 1, 0).getDate();
   const padding = (firstDayIndex + 6) % 7; 
 
-  // Add padding tiles for calendar alignment
+  // Padding tiles for month alignment
   for (let i = 0; i < padding; i++) {
     gridEl.appendChild(document.createElement("div"));
   }
@@ -54,30 +54,37 @@ function renderCalendar() {
     const isDisabled = day < START_DAY || isWeekend;
 
     const tile = document.createElement("div");
-    tile.className = `day-tile ${isDisabled ? 'disabled' : ''}`;
+    tile.className = "day-tile";
 
     const numSpan = document.createElement("span");
     numSpan.className = "day-number";
     numSpan.textContent = day;
     tile.appendChild(numSpan);
 
-    if (!isDisabled) {
+    if (isDisabled) {
+      tile.classList.add("disabled");
+    } else {
       const checkSpan = document.createElement("span");
       checkSpan.className = "check-mark";
       checkSpan.textContent = "✓";
       tile.appendChild(checkSpan);
 
+      // Apply initial state color class
       if (checkedDays.has(day)) {
         tile.classList.add("checked");
+      } else {
+        tile.classList.add("unchecked");
       }
 
-      // Handle tap/click toggling
+      // Tap/click handler
       tile.addEventListener("click", () => {
         if (checkedDays.has(day)) {
           checkedDays.delete(day);
           tile.classList.remove("checked");
+          tile.classList.add("unchecked");
         } else {
           checkedDays.add(day);
+          tile.classList.remove("unchecked");
           tile.classList.add("checked");
         }
         saveDays();
