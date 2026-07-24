@@ -11,12 +11,13 @@
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --primary: #3b82f6;
-      --primary-hover: #2563eb;
       --accent: #f97316;
       --border-color: #334155;
       --disabled-bg: rgba(255, 255, 255, 0.03);
       --disabled-text: #475569;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       background-color: var(--bg-color);
@@ -24,57 +25,54 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: flex;
       justify-content: center;
-      padding: 2rem 1rem;
+      padding: 1.5rem 1rem;
       margin: 0;
     }
 
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 1.5rem;
       width: 100%;
       max-width: 400px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
     }
 
     .header {
       font-size: 1.25rem;
       font-weight: 700;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    .section {
-      margin-bottom: 1.25rem;
-    }
+    .section { margin-bottom: 1.25rem; }
 
     .label {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       color: var(--text-sub);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.25rem;
+      font-weight: 600;
     }
 
     .value-large {
-      font-size: 1.75rem;
+      font-size: 1.85rem;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
 
-    .progress-container {
-      margin: 1rem 0 1.5rem 0;
-    }
+    .progress-container { margin: 0.75rem 0 1.25rem 0; }
 
     .progress-bar-bg {
       background-color: var(--border-color);
       height: 12px;
       border-radius: 6px;
       overflow: hidden;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .progress-bar-fill {
@@ -86,28 +84,26 @@
 
     .progress-text {
       text-align: right;
-      font-weight: 600;
-      font-size: 0.9rem;
+      font-weight: 700;
+      font-size: 0.85rem;
     }
 
     .milestone-box {
       background-color: rgba(59, 130, 246, 0.1);
-      border-left: 3px solid var(--primary);
+      border-left: 4px solid var(--primary);
       padding: 0.75rem 1rem;
-      border-radius: 4px;
-      margin-bottom: 1.5rem;
+      border-radius: 6px;
+      margin-bottom: 1.25rem;
     }
 
-    /* Calendar Styling */
     .calendar-container {
       background-color: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 1rem;
-      margin-bottom: 1.5rem;
     }
 
-    .calendar-header {
+    .calendar-title {
       font-weight: 700;
       text-align: center;
       margin-bottom: 0.75rem;
@@ -118,42 +114,56 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 6px;
-      text-align: center;
     }
 
-    .weekday-header {
+    .weekday {
       font-size: 0.75rem;
       color: var(--text-sub);
-      font-weight: 600;
+      font-weight: 700;
+      text-align: center;
       padding-bottom: 4px;
     }
 
-    .day-btn {
+    .day-tile {
+      position: relative;
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       background-color: var(--border-color);
-      color: var(--text-main);
-      border: 1px solid transparent;
-      border-radius: 6px;
-      padding: 8px 0;
-      font-size: 0.85rem;
-      font-weight: 600;
+      border-radius: 8px;
       cursor: pointer;
+      user-select: none;
       transition: all 0.2s ease;
     }
 
-    .day-btn:hover:not(:disabled) {
-      background-color: var(--primary-hover);
+    .day-number {
+      font-size: 0.85rem;
+      font-weight: 700;
     }
 
-    .day-btn.active {
+    .check-mark {
+      font-size: 0.65rem;
+      margin-top: 2px;
+      opacity: 0;
+    }
+
+    /* Active Checked State */
+    .day-tile.checked {
       background-color: var(--primary);
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
     }
 
-    .day-btn:disabled {
+    .day-tile.checked .check-mark {
+      opacity: 1;
+    }
+
+    .day-tile.disabled {
       background-color: var(--disabled-bg);
       color: var(--disabled-text);
       cursor: not-allowed;
-      border-color: transparent;
+      border: 1px solid transparent;
     }
 
     .stats-grid {
@@ -161,13 +171,11 @@
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
       border-top: 1px solid var(--border-color);
-      padding-top: 1.25rem;
+      padding-top: 1rem;
+      margin-top: 1.25rem;
     }
 
-    .streak {
-      color: var(--accent);
-      font-weight: 600;
-    }
+    .streak { color: var(--accent); font-weight: 700; }
   </style>
 </head>
 <body>
@@ -177,7 +185,7 @@
 
     <div class="section">
       <div class="label">Remaining Debt</div>
-      <div class="value-large" id="remaining-debt">0 VND</div>
+      <div class="value-large" id="remaining-debt">300,000,000 VND</div>
     </div>
 
     <div class="progress-container">
@@ -189,18 +197,16 @@
 
     <div class="milestone-box">
       <div class="label">Next Milestone</div>
-      <div style="font-weight: 600;" id="next-milestone">⬇ 0 VND</div>
+      <div style="font-weight: 700;" id="next-milestone">⬇ 200,000,000 VND</div>
       <div style="font-size: 0.85rem; color: var(--text-sub);" id="workdays-left">0 workdays left</div>
     </div>
 
-    <!-- Calendar Section -->
+    <!-- Calendar UI -->
     <div class="section">
       <div class="label">Workday Tracker</div>
       <div class="calendar-container">
-        <div class="calendar-header">July 2026</div>
-        <div class="calendar-grid" id="calendar-grid">
-          <!-- Calendar Days Generated by JS -->
-        </div>
+        <div class="calendar-title">July 2026</div>
+        <div class="calendar-grid" id="calendar-grid"></div>
       </div>
     </div>
 
@@ -215,9 +221,9 @@
       </div>
     </div>
 
-    <div class="section" style="margin-top: 1.25rem;">
+    <div class="section" style="margin-top: 1rem; margin-bottom: 0;">
       <div class="label">Projected Debt-Free</div>
-      <div style="font-weight: 600;" id="projected-date">-</div>
+      <div style="font-weight: 700;" id="projected-date">-</div>
     </div>
   </div>
 
