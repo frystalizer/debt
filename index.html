@@ -10,11 +10,14 @@
       --card-bg: #1e293b;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
-      --primary: #3b82f6;
-      --accent: #f97316;
-      --border-color: #334155;
-      --disabled-bg: rgba(255, 255, 255, 0.03);
+      
+      /* Colors */
+      --primary: #3b82f6;          /* Bright Blue for Checked Days */
+      --tile-unchecked: #334155;   /* Slate Gray for Unchecked Active Days */
+      --disabled-bg: #161e2e;     /* Dark Slate for Weekends/Past Days */
       --disabled-text: #475569;
+      --accent: #f97316;          /* Orange for Streak */
+      --border-color: #334155;
     }
 
     * { box-sizing: border-box; }
@@ -97,7 +100,7 @@
     }
 
     .calendar-container {
-      background-color: rgba(255, 255, 255, 0.02);
+      background-color: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 1rem;
@@ -124,6 +127,7 @@
       padding-bottom: 4px;
     }
 
+    /* Base Day Tile */
     .day-tile {
       position: relative;
       aspect-ratio: 1;
@@ -131,11 +135,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background-color: var(--border-color);
       border-radius: 8px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .day-number {
@@ -146,24 +149,35 @@
     .check-mark {
       font-size: 0.65rem;
       margin-top: 2px;
-      opacity: 0;
+      font-weight: 900;
+      display: none;
     }
 
-    /* Active Checked State */
+    /* Unchecked Active Day */
+    .day-tile.unchecked {
+      background-color: var(--tile-unchecked);
+      color: #cbd5e1;
+      border: 1px solid #475569;
+    }
+
+    /* Checked Day (Bright Blue Accent) */
     .day-tile.checked {
       background-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      border: 1px solid #60a5fa;
     }
 
     .day-tile.checked .check-mark {
-      opacity: 1;
+      display: block;
     }
 
+    /* Disabled State (Pre-15th & Weekends) */
     .day-tile.disabled {
       background-color: var(--disabled-bg);
       color: var(--disabled-text);
       cursor: not-allowed;
-      border: 1px solid transparent;
+      border: 1px dashed rgba(255, 255, 255, 0.05);
     }
 
     .stats-grid {
