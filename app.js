@@ -1,13 +1,26 @@
 const INITIAL_DEBT = 300000000; 
 const DAILY_RATE = 3450000; 
 const NEXT_MILESTONE_TARGET = 200000000; 
-const YEAR = 2026;
-const MONTH = 6; // July (0-indexed)
+
+// Initial Anchor Constraints: Start from July 15, 2026
+const START_YEAR = 2026;
+const START_MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
 
-// Load saved checked days from browser localStorage
+// Current Viewing State
+let currentYear = 2026;
+let currentMonth = 6; 
+
+// Storage Helper: Formats key like "YYYY-MM-DD"
+function formatDateKey(year, month, day) {
+  const m = String(month + 1).padStart(2, '0');
+  const d = String(day).padStart(2, '0');
+  return `${year}-${m}-${d}`;
+}
+
+// Load saved checked dates from browser localStorage
 function loadSavedDays() {
-  const saved = localStorage.getItem("debt_tracker_checked_days");
+  const saved = localStorage.getItem("debt_tracker_checked_keys");
   if (saved) {
     try {
       return new Set(JSON.parse(saved));
@@ -15,22 +28,33 @@ function loadSavedDays() {
       console.error("Failed to parse local storage", e);
     }
   }
-  // Default active days (July 15–24 workdays)
-  return new Set([15, 16, 17, 20, 21, 22, 23, 24]);
+  // Default active days (July 15–24, 2026 workdays)
+  return new Set([15, 16, 17, 20, 21, 22, 23, 24].map(d => formatDateKey(2026, 6, d)));
 }
 
-let checkedDays = loadSavedDays();
+let checkedKeys = loadSavedDays();
 
 function saveDays() {
-  localStorage.setItem("debt_tracker_checked_days", JSON.stringify(Array.from(checkedDays)));
+  localStorage.setItem("debt_tracker_checked_keys", JSON.stringify(Array.from(checkedKeys)));
 }
 
 const gridEl = document.getElementById("calendar-grid");
+const titleEl = document.getElementById("calendar-title");
+const prevBtn = document.getElementById("prev-month");
+const nextBtn = document.getElementById("next-month");
 
 function renderCalendar() {
   gridEl.innerHTML = "";
 
-  // Days Header (Mon - Sun)
+  // Set Carousel Header Text
+  const dateObj = new Date(currentYear, currentMonth, 1);
+  const monthName = dateObj.toLocaleString('en-US', { month: 'long' });
+  titleEl.textContent = `${monthName} ${currentYear}`;
+
+  // Disable Prev button if at starting month (July 2026)
+  prevBtn.disabled = (currentYear === START_YEAR && currentMonth === START_MONTH);
+
+  // Weekday Headers (Mon - Sun)
   ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach(d => {
     const div = document.createElement("div");
     div.className = "weekday";
@@ -38,20 +62,23 @@ function renderCalendar() {
     gridEl.appendChild(div);
   });
 
-  const firstDayIndex = new Date(YEAR, MONTH, 1).getDay();
-  const totalDays = new Date(YEAR, MONTH + 1, 0).getDate();
+  const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+  const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
   const padding = (firstDayIndex + 6) % 7; 
 
-  // Padding tiles for month alignment
+  // Padding tiles for alignment
   for (let i = 0; i < padding; i++) {
     gridEl.appendChild(document.createElement("div"));
   }
 
-  // Create Day Tiles
+  // Generate Month Days
   for (let day = 1; day <= totalDays; day++) {
-    const dateObj = new Date(YEAR, MONTH, day);
-    const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
-    const isDisabled = day < START_DAY || isWeekend;
+    const dayDate = new Date(currentYear, currentMonth, day);
+    const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
+    
+    // Check if day is prior to start anchor date (July 15, 2026)
+    const isBeforeStart = currentYear === START_YEAR && currentMonth === START_MONTH && day < START_DAY;
+    const isDisabled = isBeforeStart || isWeekend;
 
     const tile = document.createElement("div");
     tile.className = "day-tile";
@@ -69,21 +96,21 @@ function renderCalendar() {
       checkSpan.textContent = "✓";
       tile.appendChild(checkSpan);
 
-      // Apply initial state color class
-      if (checkedDays.has(day)) {
+      const dateKey = formatDateKey(currentYear, currentMonth, day);
+
+      if (checkedKeys.has(dateKey)) {
         tile.classList.add("checked");
       } else {
         tile.classList.add("unchecked");
       }
 
-      // Tap/click handler
       tile.addEventListener("click", () => {
-        if (checkedDays.has(day)) {
-          checkedDays.delete(day);
+        if (checkedKeys.has(dateKey)) {
+          checkedKeys.delete(dateKey);
           tile.classList.remove("checked");
           tile.classList.add("unchecked");
         } else {
-          checkedDays.add(day);
+          checkedKeys.add(dateKey);
           tile.classList.remove("unchecked");
           tile.classList.add("checked");
         }
@@ -96,26 +123,58 @@ function renderCalendar() {
   }
 }
 
+// Navigation Handlers
+prevBtn.addEventListener("click", () => {
+  if (currentMonth === 0) {
+    currentMonth = 11;
+    currentYear--;
+  } else {
+    currentMonth--;
+  }
+  renderCalendar();
+});
+
+nextBtn.addEventListener("click", () => {
+  if (currentMonth === 11) {
+    currentMonth = 0;
+    currentYear++;
+  } else {
+    currentMonth++;
+  }
+  renderCalendar();
+});
+
 function calculateStreak() {
   let streak = 0;
-  for (let day = 31; day >= START_DAY; day--) {
-    const dateObj = new Date(YEAR, MONTH, day);
-    const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+  let checkDate = new Date(2026, 6, 24); // Reference anchor date
+
+  while (true) {
+    const isWeekend = checkDate.getDay() === 0 || checkDate.getDay() === 6;
+    const year = checkDate.getFullYear();
+    const month = checkDate.getMonth();
+    const day = checkDate.getDate();
+
+    if (year < START_YEAR || (year === START_YEAR && month === START_MONTH && day < START_DAY)) {
+      break;
+    }
 
     if (!isWeekend) {
-      if (checkedDays.has(day)) {
+      const dateKey = formatDateKey(year, month, day);
+      if (checkedKeys.has(dateKey)) {
         streak++;
       } else if (streak > 0) {
-        break;
+        break; // Streak broke
       }
     }
+
+    checkDate.setDate(checkDate.getDate() - 1);
   }
   return streak;
 }
 
 function calculateProjectedDate(remainingAmount) {
   const workdaysNeeded = Math.ceil(remainingAmount / DAILY_RATE);
-  let currentDate = new Date(YEAR, MONTH, 24);
+  let currentDate = new Date(2026, 6, 24);
   let addedDays = 0;
 
   while (addedDays < workdaysNeeded) {
@@ -133,7 +192,7 @@ function calculateProjectedDate(remainingAmount) {
 }
 
 function updateTracker() {
-  const totalDaysChecked = checkedDays.size;
+  const totalDaysChecked = checkedKeys.size;
   const totalEarned = totalDaysChecked * DAILY_RATE;
   const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
   const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
