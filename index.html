@@ -106,7 +106,6 @@
       padding: 1rem;
     }
 
-    /* Carousel Navigation Header */
     .calendar-header {
       display: flex;
       align-items: center;
@@ -158,7 +157,6 @@
       padding-bottom: 4px;
     }
 
-    /* Day Tiles */
     .day-tile {
       position: relative;
       aspect-ratio: 1;
@@ -237,13 +235,15 @@
       <div class="progress-text" id="progress-percent">0%</div>
     </div>
 
+    <!-- Enhanced Next Milestone UI -->
     <div class="milestone-box">
       <div class="label">Next Milestone</div>
-      <div style="font-weight: 700;" id="next-milestone">⬇ 200,000,000 VND</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub);" id="workdays-left">0 workdays left</div>
+      <div style="font-weight: 700; font-size: 1.05rem;" id="next-milestone">⬇ 200,000,000 VND</div>
+      <div style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;" id="milestone-date">Target: -</div>
+      <div style="font-size: 0.85rem; color: #60a5fa; font-weight: 600; margin-top: 2px;" id="workdays-left">0 workdays to milestone</div>
     </div>
 
-    <!-- Calendar UI with Carousel -->
+    <!-- Calendar UI -->
     <div class="section">
       <div class="label">Workday Tracker</div>
       <div class="calendar-container">
@@ -268,8 +268,9 @@
     </div>
 
     <div class="section" style="margin-top: 1rem; margin-bottom: 0;">
-      <div class="label">Projected Debt-Free</div>
+      <div class="label">Projected Debt-Free Date & Days Left</div>
       <div style="font-weight: 700;" id="projected-date">-</div>
+      <div style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;" id="total-workdays-left">0 total workdays remaining</div>
     </div>
   </div>
 
