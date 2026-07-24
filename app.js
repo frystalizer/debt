@@ -2,23 +2,21 @@ const INITIAL_DEBT = 300000000;
 const DAILY_RATE = 3450000; 
 const NEXT_MILESTONE_TARGET = 200000000; 
 
-// Initial Anchor Constraints: Start from July 15, 2026
+// Start Constraint: July 15, 2026
 const START_YEAR = 2026;
 const START_MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
 
-// Current Viewing State
+// Viewing state
 let currentYear = 2026;
 let currentMonth = 6; 
 
-// Storage Helper: Formats key like "YYYY-MM-DD"
 function formatDateKey(year, month, day) {
   const m = String(month + 1).padStart(2, '0');
   const d = String(day).padStart(2, '0');
   return `${year}-${m}-${d}`;
 }
 
-// Load saved checked dates from browser localStorage
 function loadSavedDays() {
   const saved = localStorage.getItem("debt_tracker_checked_keys");
   if (saved) {
@@ -28,7 +26,7 @@ function loadSavedDays() {
       console.error("Failed to parse local storage", e);
     }
   }
-  // Default active days (July 15–24, 2026 workdays)
+  // Initial default workdays (July 15–24, 2026)
   return new Set([15, 16, 17, 20, 21, 22, 23, 24].map(d => formatDateKey(2026, 6, d)));
 }
 
@@ -38,23 +36,27 @@ function saveDays() {
   localStorage.setItem("debt_tracker_checked_keys", JSON.stringify(Array.from(checkedKeys)));
 }
 
-const gridEl = document.getElementById("calendar-grid");
-const titleEl = document.getElementById("calendar-title");
-const prevBtn = document.getElementById("prev-month");
-const nextBtn = document.getElementById("next-month");
-
 function renderCalendar() {
+  const gridEl = document.getElementById("calendar-grid");
+  const titleEl = document.getElementById("calendar-title");
+  const prevBtn = document.getElementById("prev-month");
+  const nextBtn = document.getElementById("next-month");
+
+  if (!gridEl || !titleEl) return;
+
   gridEl.innerHTML = "";
 
-  // Set Carousel Header Text
+  // Update header text
   const dateObj = new Date(currentYear, currentMonth, 1);
   const monthName = dateObj.toLocaleString('en-US', { month: 'long' });
   titleEl.textContent = `${monthName} ${currentYear}`;
 
-  // Disable Prev button if at starting month (July 2026)
-  prevBtn.disabled = (currentYear === START_YEAR && currentMonth === START_MONTH);
+  // Disable Prev button if at start month (July 2026)
+  if (prevBtn) {
+    prevBtn.disabled = (currentYear === START_YEAR && currentMonth === START_MONTH);
+  }
 
-  // Weekday Headers (Mon - Sun)
+  // Weekday Headers
   ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach(d => {
     const div = document.createElement("div");
     div.className = "weekday";
@@ -66,7 +68,7 @@ function renderCalendar() {
   const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
   const padding = (firstDayIndex + 6) % 7; 
 
-  // Padding tiles for alignment
+  // Empty slots for layout alignment
   for (let i = 0; i < padding; i++) {
     gridEl.appendChild(document.createElement("div"));
   }
@@ -75,8 +77,6 @@ function renderCalendar() {
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
-    
-    // Check if day is prior to start anchor date (July 15, 2026)
     const isBeforeStart = currentYear === START_YEAR && currentMonth === START_MONTH && day < START_DAY;
     const isDisabled = isBeforeStart || isWeekend;
 
@@ -123,30 +123,9 @@ function renderCalendar() {
   }
 }
 
-// Navigation Handlers
-prevBtn.addEventListener("click", () => {
-  if (currentMonth === 0) {
-    currentMonth = 11;
-    currentYear--;
-  } else {
-    currentMonth--;
-  }
-  renderCalendar();
-});
-
-nextBtn.addEventListener("click", () => {
-  if (currentMonth === 11) {
-    currentMonth = 0;
-    currentYear++;
-  } else {
-    currentMonth++;
-  }
-  renderCalendar();
-});
-
 function calculateStreak() {
   let streak = 0;
-  let checkDate = new Date(2026, 6, 24); // Reference anchor date
+  let checkDate = new Date(2026, 6, 24);
 
   while (true) {
     const isWeekend = checkDate.getDay() === 0 || checkDate.getDay() === 6;
@@ -163,7 +142,7 @@ function calculateStreak() {
       if (checkedKeys.has(dateKey)) {
         streak++;
       } else if (streak > 0) {
-        break; // Streak broke
+        break;
       }
     }
 
@@ -213,5 +192,37 @@ function updateTracker() {
   document.getElementById("projected-date").textContent = calculateProjectedDate(remainingDebt);
 }
 
-renderCalendar();
-updateTracker();
+// Bind Navigation Events after DOM loads
+document.addEventListener("DOMContentLoaded", () => {
+  const prevBtn = document.getElementById("prev-month");
+  const nextBtn = document.getElementById("next-month");
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      if (currentYear > START_YEAR || (currentYear === START_YEAR && currentMonth > START_MONTH)) {
+        if (currentMonth === 0) {
+          currentMonth = 11;
+          currentYear--;
+        } else {
+          currentMonth--;
+        }
+        renderCalendar();
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      if (currentMonth === 11) {
+        currentMonth = 0;
+        currentYear++;
+      } else {
+        currentMonth++;
+      }
+      renderCalendar();
+    });
+  }
+
+  renderCalendar();
+  updateTracker();
+});
