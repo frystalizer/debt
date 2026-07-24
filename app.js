@@ -1,5 +1,5 @@
 const INITIAL_DEBT = 300000000; 
-const DAILY_RATE = 3450000; 
+const DAILY_RATE = 2000000; 
 const NEXT_MILESTONE_TARGET = 200000000; 
 
 // Start Constraint: July 15, 2026
