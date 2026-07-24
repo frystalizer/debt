@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Debt Freedom Tracker</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --primary: #3b82f6;
+      --accent: #f97316;
+      --border-color: #334155;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      margin: 0;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    .header {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section {
+      margin-bottom: 1.25rem;
+    }
+
+    .label {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .value-large {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .progress-container {
+      margin: 1rem 0 1.5rem 0;
+    }
+
+    .progress-bar-bg {
+      background-color: var(--border-color);
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-fill {
+      background-color: var(--primary);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      text-align: right;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .milestone-box {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 3px solid var(--primary);
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+    }
+
+    .workday-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+    }
+
+    .workday-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.25rem;
+    }
+
+    .streak {
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">🏠 Debt Freedom</div>
+
+    <div class="section">
+      <div class="label">Remaining Debt</div>
+      <div class="value-large" id="remaining-debt">0 VND</div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-text" id="progress-percent">0%</div>
+    </div>
+
+    <div class="milestone-box">
+      <div class="label">Next Milestone</div>
+      <div style="font-weight: 600;" id="next-milestone">⬇ 0 VND</div>
+      <div style="font-size: 0.85rem; color: var(--text-sub);" id="workdays-left">0 workdays left</div>
+    </div>
+
+    <div class="section">
+      <div class="label">Today's Work</div>
+      <label class="workday-toggle">
+        <span id="today-date">Jul 24 (+3.45M)</span>
+        <input type="checkbox" id="workday-checkbox" checked />
+      </label>
+    </div>
+
+    <div class="stats-grid">
+      <div>
+        <div class="label">Total Earned</div>
+        <div style="font-weight: 700; font-size: 1.1rem;" id="total-earned">0.00M</div>
+      </div>
+      <div>
+        <div class="label">Current Streak</div>
+        <div class="streak" id="streak-count">🔥 0 workdays</div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 1.25rem;">
+      <div class="label">Projected Debt-Free</div>
+      <div style="font-weight: 600;" id="projected-date">-</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
