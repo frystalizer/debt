@@ -7,7 +7,7 @@ const START_YEAR = 2026;
 const START_MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
 
-// Viewing state
+// Current Viewing State
 let currentYear = 2026;
 let currentMonth = 6; 
 
@@ -40,23 +40,19 @@ function renderCalendar() {
   const gridEl = document.getElementById("calendar-grid");
   const titleEl = document.getElementById("calendar-title");
   const prevBtn = document.getElementById("prev-month");
-  const nextBtn = document.getElementById("next-month");
 
   if (!gridEl || !titleEl) return;
 
   gridEl.innerHTML = "";
 
-  // Update header text
   const dateObj = new Date(currentYear, currentMonth, 1);
   const monthName = dateObj.toLocaleString('en-US', { month: 'long' });
   titleEl.textContent = `${monthName} ${currentYear}`;
 
-  // Disable Prev button if at start month (July 2026)
   if (prevBtn) {
     prevBtn.disabled = (currentYear === START_YEAR && currentMonth === START_MONTH);
   }
 
-  // Weekday Headers
   ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach(d => {
     const div = document.createElement("div");
     div.className = "weekday";
@@ -68,12 +64,10 @@ function renderCalendar() {
   const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
   const padding = (firstDayIndex + 6) % 7; 
 
-  // Empty slots for layout alignment
   for (let i = 0; i < padding; i++) {
     gridEl.appendChild(document.createElement("div"));
   }
 
-  // Generate Month Days
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
@@ -151,23 +145,34 @@ function calculateStreak() {
   return streak;
 }
 
-function calculateProjectedDate(remainingAmount) {
-  const workdaysNeeded = Math.ceil(remainingAmount / DAILY_RATE);
-  let currentDate = new Date(2026, 6, 24);
-  let addedDays = 0;
+// Helper: Projects future date by adding N workdays starting from today/anchor
+function projectWorkdaysAhead(workdaysNeeded) {
+  let currentDate = new Date(2026, 6, 24); // Reference anchor
+  let addedWorkdays = 0;
 
-  while (addedDays < workdaysNeeded) {
+  if (workdaysNeeded <= 0) {
+    return {
+      dateString: "Achieved!",
+      workdaysCount: 0
+    };
+  }
+
+  while (addedWorkdays < workdaysNeeded) {
     currentDate.setDate(currentDate.getDate() + 1);
+    // Skip weekends
     if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-      addedDays++;
+      addedWorkdays++;
     }
   }
 
-  return currentDate.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
+  return {
+    dateString: currentDate.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }),
+    workdaysCount: workdaysNeeded
+  };
 }
 
 function updateTracker() {
@@ -176,23 +181,34 @@ function updateTracker() {
   const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
   const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
 
-  const debtToMilestone = Math.max(0, remainingDebt - (INITIAL_DEBT - NEXT_MILESTONE_TARGET));
+  // Milestone Calculations
+  const debtToMilestone = Math.max(0, remainingDebt - NEXT_MILESTONE_TARGET);
   const workdaysToMilestone = Math.ceil(debtToMilestone / DAILY_RATE);
+  const milestoneProjection = projectWorkdaysAhead(workdaysToMilestone);
 
+  // Total Debt-Free Calculations
+  const totalWorkdaysNeeded = Math.ceil(remainingDebt / DAILY_RATE);
+  const totalProjection = projectWorkdaysAhead(totalWorkdaysNeeded);
+
+  // DOM Updates
   document.getElementById("remaining-debt").textContent = `${remainingDebt.toLocaleString("vi-VN")} VND`;
   document.getElementById("progress-fill").style.width = `${progressPercent}%`;
   document.getElementById("progress-percent").textContent = `${progressPercent}%`;
 
+  // Milestone updates
   document.getElementById("next-milestone").textContent = `⬇ ${NEXT_MILESTONE_TARGET.toLocaleString("vi-VN")} VND`;
-  document.getElementById("workdays-left").textContent = `${workdaysToMilestone} workdays left`;
+  document.getElementById("milestone-date").textContent = `Target: ${milestoneProjection.dateString}`;
+  document.getElementById("workdays-left").textContent = `${milestoneProjection.workdaysCount} workdays to milestone`;
 
+  // General Stats
   document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
   document.getElementById("streak-count").textContent = `🔥 ${calculateStreak()} workdays`;
 
-  document.getElementById("projected-date").textContent = calculateProjectedDate(remainingDebt);
+  // Projected Full Clearance
+  document.getElementById("projected-date").textContent = totalProjection.dateString;
+  document.getElementById("total-workdays-left").textContent = `${totalProjection.workdaysCount} total workdays remaining`;
 }
 
-// Bind Navigation Events after DOM loads
 document.addEventListener("DOMContentLoaded", () => {
   const prevBtn = document.getElementById("prev-month");
   const nextBtn = document.getElementById("next-month");
