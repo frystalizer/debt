@@ -62,7 +62,13 @@
       font-weight: 600;
     }
 
-    /* Salary Input Field */
+    /* Input & Apply Button Controls */
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
     .input-container {
       display: flex;
       align-items: center;
@@ -70,14 +76,14 @@
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 0.5rem 0.75rem;
-      margin-bottom: 1rem;
+      flex: 1;
     }
 
     .input-container input {
       background: transparent;
       border: none;
       color: var(--text-main);
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 700;
       width: 100%;
       outline: none;
@@ -87,6 +93,26 @@
       color: var(--text-sub);
       font-weight: 600;
       font-size: 0.85rem;
+    }
+
+    .apply-btn {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0 1rem;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .apply-btn:hover {
+      background-color: #2563eb;
+    }
+
+    .apply-btn:active {
+      transform: scale(0.96);
     }
 
     .value-large {
@@ -250,12 +276,15 @@
   <div class="card">
     <div class="header">🏠 Debt Freedom</div>
 
-    <!-- Monthly Earnings Setting Input -->
+    <!-- Monthly Net Earnings Field + Apply Button -->
     <div class="section" style="margin-bottom: 0.75rem;">
       <div class="label">Monthly Net Earnings</div>
-      <div class="input-container">
-        <input type="text" id="monthly-salary-input" value="76,000,000" placeholder="0" />
-        <span>VND</span>
+      <div class="input-group">
+        <div class="input-container">
+          <input type="text" id="monthly-salary-input" value="76,000,000" placeholder="0" />
+          <span>VND</span>
+        </div>
+        <button class="apply-btn" id="apply-salary-btn">Apply</button>
       </div>
     </div>
 
