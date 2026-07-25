@@ -288,14 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (salaryInput) {
     salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
 
-    // Only format keypresses visually, do not recalculate on input
-    salaryInput.addEventListener("input", (e) => {
-      const rawValue = e.target.value.replace(/[^0-9]/g, "");
-      const parsed = parseFloat(rawValue) || 0;
-      e.target.value = parsed > 0 ? parsed.toLocaleString("vi-VN") : "";
-    });
-
-    // Trigger update on 'Enter' keypress
+    // Only update/recalculate on explicit Enter key press
     salaryInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         applyNewSalary();
