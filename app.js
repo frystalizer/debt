@@ -151,15 +151,28 @@ function renderCalendar() {
           checkedKeys.add(dateKey);
           tile.classList.remove("unchecked");
           tile.classList.add("checked");
-
-          // --- FIX: Show Toast on Workday Check ---
+      
+          // ✨ Pop animation when checking a day
+          tile.animate(
+            [
+              { transform: "scale(0.92)" },
+              { transform: "scale(1.08)" },
+              { transform: "scale(1)" }
+            ],
+            {
+              duration: 250,
+              easing: "ease-out"
+            }
+          );
+      
+          // Show toast notification
           const dailyRate = getDailyRateForMonth(currentYear, currentMonth);
           const earnedMillions = dailyRate / 1000000;
           
           const totalEarned = calculateTotalEarned();
           const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
           const projection = projectWorkdaysAhead(remainingDebt);
-
+      
           showToast(earnedMillions, projection.workdaysCount);
         }
         saveDays();
