@@ -347,7 +347,8 @@ function updateTracker() {
   }
 
   document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
-  document.getElementById("streak-count").textContent = `🔥 ${calculateStreak()} workdays`;
+  const streak = calculateStreak();
+  document.getElementById("streak-count").innerHTML = `<span class="fire-emoji">🔥</span> ${streak} workdays`;
 
   document.getElementById("projected-date").textContent = totalProjection.dateString;
   document.getElementById("total-workdays-left").textContent = `${totalProjection.workdaysCount} total workdays remaining`;
