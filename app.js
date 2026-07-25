@@ -1,8 +1,7 @@
 const INITIAL_DEBT = 300000000; 
-const DAILY_RATE = 2000000; 
 const NEXT_MILESTONE_TARGET = 200000000; 
 
-// Start Constraint: July 15, 2026
+// Start Constraint Anchor: July 15, 2026
 const START_YEAR = 2026;
 const START_MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
@@ -10,6 +9,17 @@ const START_DAY = 15;
 // Current Viewing State
 let currentYear = 2026;
 let currentMonth = 6; 
+
+let monthlySalary = loadMonthlySalary();
+
+function loadMonthlySalary() {
+  const saved = localStorage.getItem("debt_tracker_monthly_salary");
+  return saved ? parseFloat(saved) : 76000000;
+}
+
+function saveMonthlySalary(amount) {
+  localStorage.setItem("debt_tracker_monthly_salary", amount);
+}
 
 function formatDateKey(year, month, day) {
   const m = String(month + 1).padStart(2, '0');
@@ -35,9 +45,29 @@ function saveDays() {
   localStorage.setItem("debt_tracker_checked_keys", JSON.stringify(Array.from(checkedKeys)));
 }
 
+// Calculate actual workdays (Mon-Fri) in a given month
+function getWorkdaysInMonth(year, month) {
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  let workdays = 0;
+  for (let day = 1; day <= totalDays; day++) {
+    const dayOfWeek = new Date(year, month, day).getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      workdays++;
+    }
+  }
+  return workdays;
+}
+
+// Calculate dynamic daily rate for a given month
+function getDailyRateForMonth(year, month) {
+  const workdays = getWorkdaysInMonth(year, month);
+  return workdays > 0 ? monthlySalary / workdays : 0;
+}
+
 function renderCalendar() {
   const gridEl = document.getElementById("calendar-grid");
   const titleEl = document.getElementById("calendar-title");
+  const subtitleEl = document.getElementById("month-rate-subtitle");
   const prevBtn = document.getElementById("prev-month");
 
   if (!gridEl || !titleEl) return;
@@ -47,6 +77,12 @@ function renderCalendar() {
   const dateObj = new Date(currentYear, currentMonth, 1);
   const monthName = dateObj.toLocaleString('en-US', { month: 'long' });
   titleEl.textContent = `${monthName} ${currentYear}`;
+
+  const workdays = getWorkdaysInMonth(currentYear, currentMonth);
+  const dailyRate = getDailyRateForMonth(currentYear, currentMonth);
+  if (subtitleEl) {
+    subtitleEl.textContent = `${Math.round(dailyRate).toLocaleString("vi-VN")} VND/day (${workdays} days)`;
+  }
 
   if (prevBtn) {
     prevBtn.disabled = (currentYear === START_YEAR && currentMonth === START_MONTH);
@@ -116,14 +152,22 @@ function renderCalendar() {
   }
 }
 
-// Find the latest checked date as our starting point for projections
 function getLatestCheckedDate() {
   if (checkedKeys.size === 0) return new Date(2026, 6, 24);
-  
   const sorted = Array.from(checkedKeys).sort();
   const latestKey = sorted[sorted.length - 1];
   const [y, m, d] = latestKey.split('-').map(Number);
   return new Date(y, m - 1, d);
+}
+
+function calculateTotalEarned() {
+  let totalEarned = 0;
+  checkedKeys.forEach(dateKey => {
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const dailyRate = getDailyRateForMonth(y, m - 1);
+    totalEarned += dailyRate;
+  });
+  return totalEarned;
 }
 
 function calculateStreak() {
@@ -154,9 +198,9 @@ function calculateStreak() {
   return streak;
 }
 
-// Projects future date given N workdays needed
-function projectWorkdaysAhead(workdaysNeeded) {
-  if (workdaysNeeded <= 0) {
+// Projects future date given remaining debt amount using per-month dynamic rates
+function projectWorkdaysAhead(remainingDebtTarget) {
+  if (remainingDebtTarget <= 0) {
     return {
       dateString: "Achieved! 🎉",
       workdaysCount: 0
@@ -164,12 +208,19 @@ function projectWorkdaysAhead(workdaysNeeded) {
   }
 
   let currentDate = getLatestCheckedDate();
-  let addedWorkdays = 0;
+  let accumulatedEarning = 0;
+  let workdaysCount = 0;
 
-  while (addedWorkdays < workdaysNeeded) {
+  while (accumulatedEarning < remainingDebtTarget) {
     currentDate.setDate(currentDate.getDate() + 1);
-    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-      addedWorkdays++;
+    const dayOfWeek = currentDate.getDay();
+
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      const y = currentDate.getFullYear();
+      const m = currentDate.getMonth();
+      const rate = getDailyRateForMonth(y, m);
+      accumulatedEarning += rate;
+      workdaysCount++;
     }
   }
 
@@ -179,27 +230,24 @@ function projectWorkdaysAhead(workdaysNeeded) {
       month: "short",
       year: "numeric"
     }),
-    workdaysCount: workdaysNeeded
+    workdaysCount: workdaysCount
   };
 }
 
 function updateTracker() {
-  const totalDaysChecked = checkedKeys.size;
-  const totalEarned = totalDaysChecked * DAILY_RATE;
+  const totalEarned = calculateTotalEarned();
   const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
   const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
 
-  // Milestone Calculations: Target is to reduce remaining debt down to 200M VND
+  // Milestone Calculations
   const debtToMilestone = Math.max(0, remainingDebt - NEXT_MILESTONE_TARGET);
-  const workdaysToMilestone = Math.ceil(debtToMilestone / DAILY_RATE);
-  const milestoneProjection = projectWorkdaysAhead(workdaysToMilestone);
+  const milestoneProjection = projectWorkdaysAhead(debtToMilestone);
 
   // Total Clearance Calculations
-  const totalWorkdaysNeeded = Math.ceil(remainingDebt / DAILY_RATE);
-  const totalProjection = projectWorkdaysAhead(totalWorkdaysNeeded);
+  const totalProjection = projectWorkdaysAhead(remainingDebt);
 
   // DOM Updates
-  document.getElementById("remaining-debt").textContent = `${remainingDebt.toLocaleString("vi-VN")} VND`;
+  document.getElementById("remaining-debt").textContent = `${Math.round(remainingDebt).toLocaleString("vi-VN")} VND`;
   document.getElementById("progress-fill").style.width = `${progressPercent}%`;
   document.getElementById("progress-percent").textContent = `${progressPercent}%`;
 
@@ -212,14 +260,31 @@ function updateTracker() {
   document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
   document.getElementById("streak-count").textContent = `🔥 ${calculateStreak()} workdays`;
 
-  // Projected Full Clearance Updates
+  // Projected Full Clearance
   document.getElementById("projected-date").textContent = totalProjection.dateString;
   document.getElementById("total-workdays-left").textContent = `${totalProjection.workdaysCount} total workdays remaining`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const salaryInput = document.getElementById("monthly-salary-input");
   const prevBtn = document.getElementById("prev-month");
   const nextBtn = document.getElementById("next-month");
+
+  // Format initial salary input value
+  if (salaryInput) {
+    salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
+
+    salaryInput.addEventListener("input", (e) => {
+      const rawValue = e.target.value.replace(/[^0-9]/g, "");
+      const parsed = parseFloat(rawValue) || 0;
+      monthlySalary = parsed;
+      saveMonthlySalary(parsed);
+      e.target.value = parsed > 0 ? parsed.toLocaleString("vi-VN") : "";
+      
+      renderCalendar();
+      updateTracker();
+    });
+  }
 
   if (prevBtn) {
     prevBtn.addEventListener("click", () => {
