@@ -425,3 +425,37 @@ body {
 .collapsible-content .input-group {
   margin-bottom: 0; /* Align clean inside padded block */
 }
+
+.progress-container {
+  margin: 0.75rem 0 1.25rem 0;
+}
+
+.progress-bar-bg {
+  position: relative;
+  background-color: var(--border-color);
+  height: 22px; /* Enlarged height */
+  border-radius: 11px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.progress-bar-fill {
+  background-color: #3b82f6;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 11px;
+}
+
+.progress-text-inside {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); /* Keeps text legible over dark or light background */
+  pointer-events: none;
+  z-index: 2;
+}
