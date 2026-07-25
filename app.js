@@ -6,9 +6,12 @@ const START_YEAR = 2026;
 const START_MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
 
-// Current Viewing State
+// Viewing state
 let currentYear = 2026;
 let currentMonth = 6; 
+
+// Cache for workdays in month to optimize performance
+const workdaysCache = {};
 
 let monthlySalary = loadMonthlySalary();
 
@@ -45,8 +48,11 @@ function saveDays() {
   localStorage.setItem("debt_tracker_checked_keys", JSON.stringify(Array.from(checkedKeys)));
 }
 
-// Calculate actual workdays (Mon-Fri) in a given month
+// Calculate workdays in month with caching
 function getWorkdaysInMonth(year, month) {
+  const key = `${year}-${month}`;
+  if (workdaysCache[key]) return workdaysCache[key];
+
   const totalDays = new Date(year, month + 1, 0).getDate();
   let workdays = 0;
   for (let day = 1; day <= totalDays; day++) {
@@ -55,10 +61,11 @@ function getWorkdaysInMonth(year, month) {
       workdays++;
     }
   }
+
+  workdaysCache[key] = workdays;
   return workdays;
 }
 
-// Calculate dynamic daily rate for a given month
 function getDailyRateForMonth(year, month) {
   const workdays = getWorkdaysInMonth(year, month);
   return workdays > 0 ? monthlySalary / workdays : 0;
@@ -163,9 +170,8 @@ function getLatestCheckedDate() {
 function calculateTotalEarned() {
   let totalEarned = 0;
   checkedKeys.forEach(dateKey => {
-    const [y, m, d] = dateKey.split('-').map(Number);
-    const dailyRate = getDailyRateForMonth(y, m - 1);
-    totalEarned += dailyRate;
+    const [y, m] = dateKey.split('-').map(Number);
+    totalEarned += getDailyRateForMonth(y, m - 1);
   });
   return totalEarned;
 }
@@ -198,7 +204,6 @@ function calculateStreak() {
   return streak;
 }
 
-// Projects future date given remaining debt amount using per-month dynamic rates
 function projectWorkdaysAhead(remainingDebtTarget) {
   if (remainingDebtTarget <= 0) {
     return {
@@ -218,8 +223,7 @@ function projectWorkdaysAhead(remainingDebtTarget) {
     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
       const y = currentDate.getFullYear();
       const m = currentDate.getMonth();
-      const rate = getDailyRateForMonth(y, m);
-      accumulatedEarning += rate;
+      accumulatedEarning += getDailyRateForMonth(y, m);
       workdaysCount++;
     }
   }
@@ -239,51 +243,68 @@ function updateTracker() {
   const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
   const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
 
-  // Milestone Calculations
   const debtToMilestone = Math.max(0, remainingDebt - NEXT_MILESTONE_TARGET);
   const milestoneProjection = projectWorkdaysAhead(debtToMilestone);
 
-  // Total Clearance Calculations
   const totalProjection = projectWorkdaysAhead(remainingDebt);
 
-  // DOM Updates
   document.getElementById("remaining-debt").textContent = `${Math.round(remainingDebt).toLocaleString("vi-VN")} VND`;
   document.getElementById("progress-fill").style.width = `${progressPercent}%`;
   document.getElementById("progress-percent").textContent = `${progressPercent}%`;
 
-  // Milestone Updates
   document.getElementById("next-milestone").textContent = `⬇ ${NEXT_MILESTONE_TARGET.toLocaleString("vi-VN")} VND`;
   document.getElementById("milestone-date").textContent = `Target: ${milestoneProjection.dateString}`;
   document.getElementById("workdays-left").textContent = `${milestoneProjection.workdaysCount} workdays left`;
 
-  // General Stats
   document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
   document.getElementById("streak-count").textContent = `🔥 ${calculateStreak()} workdays`;
 
-  // Projected Full Clearance
   document.getElementById("projected-date").textContent = totalProjection.dateString;
   document.getElementById("total-workdays-left").textContent = `${totalProjection.workdaysCount} total workdays remaining`;
 }
 
+function applyNewSalary() {
+  const salaryInput = document.getElementById("monthly-salary-input");
+  if (!salaryInput) return;
+
+  const rawValue = salaryInput.value.replace(/[^0-9]/g, "");
+  const parsed = parseFloat(rawValue) || 0;
+
+  monthlySalary = parsed;
+  saveMonthlySalary(parsed);
+
+  salaryInput.value = parsed > 0 ? parsed.toLocaleString("vi-VN") : "";
+
+  renderCalendar();
+  updateTracker();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const salaryInput = document.getElementById("monthly-salary-input");
+  const applyBtn = document.getElementById("apply-salary-btn");
   const prevBtn = document.getElementById("prev-month");
   const nextBtn = document.getElementById("next-month");
 
-  // Format initial salary input value
   if (salaryInput) {
     salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
 
+    // Only format keypresses visually, do not recalculate on input
     salaryInput.addEventListener("input", (e) => {
       const rawValue = e.target.value.replace(/[^0-9]/g, "");
       const parsed = parseFloat(rawValue) || 0;
-      monthlySalary = parsed;
-      saveMonthlySalary(parsed);
       e.target.value = parsed > 0 ? parsed.toLocaleString("vi-VN") : "";
-      
-      renderCalendar();
-      updateTracker();
     });
+
+    // Trigger update on 'Enter' keypress
+    salaryInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        applyNewSalary();
+      }
+    });
+  }
+
+  if (applyBtn) {
+    applyBtn.addEventListener("click", applyNewSalary);
   }
 
   if (prevBtn) {
