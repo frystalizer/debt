@@ -79,7 +79,8 @@ function renderCalendar() {
   const workdays = getWorkdaysInMonth(currentYear, currentMonth);
   const dailyRate = getDailyRateForMonth(currentYear, currentMonth);
   if (subtitleEl) {
-    subtitleEl.textContent = `${Math.round(dailyRate).toLocaleString("vi-VN")} VND/day (${workdays} days)`;
+    const rateInMillions = (dailyRate / 1000000).toFixed(1);
+    subtitleEl.textContent = `${rateInMillions}M/day (${workdays} days)`;
   }
 
   if (prevBtn) {
