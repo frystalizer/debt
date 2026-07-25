@@ -11,12 +11,11 @@
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       
-      /* Colors */
-      --primary: #3b82f6;          /* Bright Blue for Checked Days */
-      --tile-unchecked: #334155;   /* Slate Gray for Unchecked Active Days */
-      --disabled-bg: #161e2e;     /* Dark Slate for Weekends/Past Days */
+      --primary: #3b82f6;
+      --tile-unchecked: #334155;
+      --disabled-bg: #161e2e;
       --disabled-text: #475569;
-      --accent: #f97316;          /* Orange for Streak */
+      --accent: #f97316;
       --border-color: #334155;
     }
 
@@ -62,7 +61,6 @@
       font-weight: 600;
     }
 
-    /* Input & Apply Button Controls */
     .input-group {
       display: flex;
       gap: 0.5rem;
@@ -104,16 +102,10 @@
       font-weight: 700;
       font-size: 0.85rem;
       cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.1s ease;
+      transition: background-color 0.2s ease;
     }
 
-    .apply-btn:hover {
-      background-color: #2563eb;
-    }
-
-    .apply-btn:active {
-      transform: scale(0.96);
-    }
+    .apply-btn:hover { background-color: #2563eb; }
 
     .value-large {
       font-size: 1.85rem;
@@ -169,6 +161,7 @@
     .calendar-title {
       font-weight: 700;
       font-size: 1rem;
+      text-align: center;
     }
 
     .nav-btn {
@@ -200,6 +193,7 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 6px;
+      min-height: 220px;
     }
 
     .weekday {
@@ -220,20 +214,11 @@
       border-radius: 8px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
     }
 
-    .day-number {
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-
-    .check-mark {
-      font-size: 0.65rem;
-      margin-top: 2px;
-      font-weight: 900;
-      display: none;
-    }
+    .day-number { font-size: 0.85rem; font-weight: 700; }
+    .check-mark { font-size: 0.65rem; margin-top: 2px; font-weight: 900; display: none; }
 
     .day-tile.unchecked {
       background-color: var(--tile-unchecked);
@@ -248,9 +233,7 @@
       border: 1px solid #60a5fa;
     }
 
-    .day-tile.checked .check-mark {
-      display: block;
-    }
+    .day-tile.checked .check-mark { display: block; }
 
     .day-tile.disabled {
       background-color: var(--disabled-bg);
@@ -276,7 +259,7 @@
   <div class="card">
     <div class="header">🏠 Debt Freedom</div>
 
-    <!-- Monthly Net Earnings Field + Apply Button -->
+    <!-- Monthly Earnings Input + Apply Button -->
     <div class="section" style="margin-bottom: 0.75rem;">
       <div class="label">Monthly Net Earnings</div>
       <div class="input-group">
