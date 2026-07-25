@@ -324,7 +324,11 @@ function updateTracker() {
 
   const totalProjection = projectWorkdaysAhead(remainingDebt);
 
-  document.getElementById("remaining-debt").textContent = `${Math.round(remainingDebt).toLocaleString("vi-VN")} VND`;
+  // --- NEW: Huge M view + exact subtext ---
+  const remainingMillions = (remainingDebt / 1000000).toFixed(1);
+  document.getElementById("remaining-debt-large").textContent = `${remainingMillions}M`;
+  document.getElementById("remaining-debt-exact").textContent = `${Math.round(remainingDebt).toLocaleString("vi-VN")} VND`;
+
   document.getElementById("progress-fill").style.width = `${progressPercent}%`;
   document.getElementById("progress-percent").textContent = `${progressPercent}%`;
 
@@ -339,6 +343,7 @@ function updateTracker() {
   }
 
   document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
+  
   const streak = calculateStreak();
   document.getElementById("streak-count").innerHTML = `<span class="fire-emoji">🔥</span> ${streak} workdays`;
 
