@@ -203,13 +203,7 @@ function calculateTotalEarned() {
 
 function calculateStreak() {
   let streak = 0;
-  // Anchor on today instead of the absolute max key in the future
-  let checkDate = new Date(); 
-
-  // Skip weekends if today is a weekend
-  while (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
+  let checkDate = getLatestCheckedDate();
 
   while (true) {
     const isWeekend = checkDate.getDay() === 0 || checkDate.getDay() === 6;
@@ -217,7 +211,6 @@ function calculateStreak() {
     const month = checkDate.getMonth();
     const day = checkDate.getDate();
 
-    // Stop if before start constraint
     if (year < START_YEAR || (year === START_YEAR && month === START_MONTH && day < START_DAY)) {
       break;
     }
@@ -226,9 +219,8 @@ function calculateStreak() {
       const dateKey = formatDateKey(year, month, day);
       if (checkedKeys.has(dateKey)) {
         streak++;
-      } else {
-        // Gap encountered -> unbroken streak ends here
-        break; 
+      } else if (streak > 0) {
+        break;
       }
     }
 
