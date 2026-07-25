@@ -264,22 +264,36 @@ function getNextMilestoneTarget(currentRemainingDebt) {
   return Math.max(0, nextTarget);
 }
 
+const toastMessages = [
+  "🎉 Great work!",
+  "💪 Keep going!",
+  "🏠 One step closer.",
+  "🔥 Streak continues!",
+  "🚀 Nice progress!",
+  "📈 You're getting there!"
+];
+
 let toastTimeout;
 
 function showToast(amount, workdaysLeft) {
   const toast = document.getElementById("toast");
+  if (!toast) return;
 
-  document.getElementById("toast-amount").textContent =
-    `+${amount.toFixed(2)}M`;
+  // Pick a random message from the array
+  const randomMessage = toastMessages[Math.floor(Math.random() * toastMessages.length)];
 
-  document.getElementById("toast-sub").textContent =
-    `${workdaysLeft} workdays left`;
+  document.getElementById("toast-amount").textContent = `+${amount.toFixed(2)}M`;
+  
+  // Set the randomly selected message
+  document.querySelector("#toast .toast-message").textContent = randomMessage;
+
+  document.getElementById("toast-sub").textContent = `${workdaysLeft} workdays left`;
 
   toast.classList.remove("hidden");
 
-  // restart animation if already visible
+  // Restart CSS animation/transition if triggered in quick succession
   toast.classList.remove("show");
-  void toast.offsetWidth;
+  void toast.offsetWidth; // Trigger reflow
 
   toast.classList.add("show");
 
@@ -291,7 +305,6 @@ function showToast(amount, workdaysLeft) {
     setTimeout(() => {
       toast.classList.add("hidden");
     }, 350);
-
   }, 2000);
 }
 
