@@ -1,0 +1,298 @@
+:root {
+  --bg-color: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f8fafc;
+  --text-sub: #94a3b8;
+  
+  --primary: #2563eb;          /* Bright vivid blue */
+  --tile-unchecked: #121826;     /* Slightly darker grey for future days */
+  --disabled-bg: #161e2e;
+  --disabled-text: #475569;
+  --accent: #f97316;
+  --border-color: #334155;
+}
+
+* { 
+  box-sizing: border-box; 
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0.5rem;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem 0.85rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.header {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section { margin-bottom: 1.25rem; }
+
+.label {
+  font-size: 0.7rem;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.input-container input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+  width: 100%;
+  outline: none;
+}
+
+.input-container span {
+  color: var(--text-sub);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.apply-btn {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0 0.85rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.apply-btn:hover { background-color: #2563eb; }
+
+.value-large {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+.progress-container { margin: 0.75rem 0 1.25rem 0; }
+
+.progress-bar-bg {
+  background-color: var(--border-color);
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+.progress-bar-fill {
+  background-color: #3b82f6;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.milestone-box {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #3b82f6;
+  padding: 0.75rem 0.85rem;
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+}
+
+/* Calendar Container & Grid */
+.calendar-container {
+  background-color: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.6rem 0.4rem;
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0 0.2rem;
+}
+
+.calendar-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.nav-btn {
+  background-color: #334155;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background-color: #3b82f6;
+  border-color: #60a5fa;
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  width: 100%;
+}
+
+.weekday {
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  font-weight: 700;
+  text-align: center;
+  padding-bottom: 2px;
+}
+
+.day-tile {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  min-width: 0;
+  padding: 0;
+}
+
+.day-number { 
+  font-size: 0.75rem; 
+  font-weight: 700; 
+  line-height: 1;
+}
+
+.check-mark { 
+  font-size: 0.55rem; 
+  margin-top: 1px; 
+  font-weight: 900; 
+  display: none; 
+  line-height: 1;
+}
+
+/* --- CALENDAR STATES --- */
+
+/* 1. Unchecked Future Days (Slightly Darker) */
+.day-tile.unchecked {
+  background-color: var(--tile-unchecked);
+  color: #64748b;
+  border: 1px solid #1e293b;
+}
+
+.day-tile.unchecked:hover {
+  background-color: #1e293b;
+  color: #cbd5e1;
+}
+
+/* 2. Checked Days (Bright Blue) */
+.day-tile.checked {
+  background-color: var(--primary);
+  color: #ffffff;
+  border: 1px solid #60a5fa;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+}
+
+.day-tile.checked .check-mark { 
+  display: block; 
+  color: #ffffff;
+}
+
+/* 3. Today Tile (White Glowing Border) */
+.day-tile.is-today {
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), inset 0 0 4px rgba(255, 255, 255, 0.3) !important;
+  z-index: 2;
+}
+
+.day-tile.is-today .day-number {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+/* Disabled Days (e.g. past start anchor / weekends) */
+.day-tile.disabled {
+  background-color: var(--disabled-bg);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 1.25rem;
+}
+
+.streak { color: var(--accent); font-weight: 700; }
