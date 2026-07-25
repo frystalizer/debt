@@ -10,9 +10,6 @@ const START_DAY = 15;
 let currentYear = 2026;
 let currentMonth = 6; 
 
-// Cache for workdays in month to optimize performance
-const workdaysCache = {};
-
 let monthlySalary = loadMonthlySalary();
 
 function loadMonthlySalary() {
@@ -48,11 +45,7 @@ function saveDays() {
   localStorage.setItem("debt_tracker_checked_keys", JSON.stringify(Array.from(checkedKeys)));
 }
 
-// Calculate workdays in month with caching
 function getWorkdaysInMonth(year, month) {
-  const key = `${year}-${month}`;
-  if (workdaysCache[key]) return workdaysCache[key];
-
   const totalDays = new Date(year, month + 1, 0).getDate();
   let workdays = 0;
   for (let day = 1; day <= totalDays; day++) {
@@ -61,8 +54,6 @@ function getWorkdaysInMonth(year, month) {
       workdays++;
     }
   }
-
-  workdaysCache[key] = workdays;
   return workdays;
 }
 
@@ -288,7 +279,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (salaryInput) {
     salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
 
-    // Only update/recalculate on explicit Enter key press
     salaryInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         applyNewSalary();
