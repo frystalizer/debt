@@ -144,7 +144,7 @@ function renderCalendar() {
 
       tile.addEventListener("click", () => {
         if (checkedKeys.has(dateKey)) {
-          checkedKeys.delete(dateKey);
+          checkedKeys.delete(dateKey);  
           tile.classList.remove("checked");
           tile.classList.add("unchecked");
         } else {
@@ -244,6 +244,37 @@ function getNextMilestoneTarget(currentRemainingDebt) {
   if (currentRemainingDebt <= 0) return 0;
   const nextTarget = Math.floor((currentRemainingDebt - 1) / MILESTONE_STEP) * MILESTONE_STEP;
   return Math.max(0, nextTarget);
+}
+
+let toastTimeout;
+
+function showToast(amount, workdaysLeft) {
+  const toast = document.getElementById("toast");
+
+  document.getElementById("toast-amount").textContent =
+    `+${amount.toFixed(2)}M`;
+
+  document.getElementById("toast-sub").textContent =
+    `${workdaysLeft} workdays left`;
+
+  toast.classList.remove("hidden");
+
+  // restart animation if already visible
+  toast.classList.remove("show");
+  void toast.offsetWidth;
+
+  toast.classList.add("show");
+
+  clearTimeout(toastTimeout);
+
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("show");
+
+    setTimeout(() => {
+      toast.classList.add("hidden");
+    }, 350);
+
+  }, 2000);
 }
 
 function updateTracker() {
