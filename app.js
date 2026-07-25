@@ -151,6 +151,16 @@ function renderCalendar() {
           checkedKeys.add(dateKey);
           tile.classList.remove("unchecked");
           tile.classList.add("checked");
+
+          // --- FIX: Show Toast on Workday Check ---
+          const dailyRate = getDailyRateForMonth(currentYear, currentMonth);
+          const earnedMillions = dailyRate / 1000000;
+          
+          const totalEarned = calculateTotalEarned();
+          const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
+          const projection = projectWorkdaysAhead(remainingDebt);
+
+          showToast(earnedMillions, projection.workdaysCount);
         }
         saveDays();
         updateTracker();
