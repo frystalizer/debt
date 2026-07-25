@@ -27,7 +27,7 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: flex;
       justify-content: center;
-      padding: 1.5rem 1rem;
+      padding: 1rem 0.75rem;
       margin: 0;
     }
 
@@ -35,10 +35,11 @@
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 1.5rem;
+      padding: 1.25rem 1rem;
       width: 100%;
       max-width: 400px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
     }
 
     .header {
@@ -75,6 +76,7 @@
       border-radius: 8px;
       padding: 0.5rem 0.75rem;
       flex: 1;
+      min-width: 0;
     }
 
     .input-container input {
@@ -103,14 +105,16 @@
       font-size: 0.85rem;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      flex-shrink: 0;
     }
 
     .apply-btn:hover { background-color: #2563eb; }
 
     .value-large {
-      font-size: 1.85rem;
+      font-size: 1.75rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+      word-break: break-word;
     }
 
     .progress-container { margin: 0.75rem 0 1.25rem 0; }
@@ -144,11 +148,14 @@
       margin-bottom: 1.25rem;
     }
 
+    /* Fixed Calendar Layout */
     .calendar-container {
       background-color: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 1rem;
+      padding: 0.75rem 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .calendar-header {
@@ -156,11 +163,12 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 0.85rem;
+      padding: 0 0.25rem;
     }
 
     .calendar-title {
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 0.95rem;
       text-align: center;
     }
 
@@ -177,6 +185,7 @@
       cursor: pointer;
       font-weight: 700;
       transition: all 0.2s ease;
+      flex-shrink: 0;
     }
 
     .nav-btn:hover:not(:disabled) {
@@ -189,15 +198,16 @@
       cursor: not-allowed;
     }
 
+    /* minmax(0, 1fr) ensures columns shrink properly on mobile without overflowing */
     .calendar-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-      min-height: 220px;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      width: 100%;
     }
 
     .weekday {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-sub);
       font-weight: 700;
       text-align: center;
@@ -207,18 +217,20 @@
     .day-tile {
       position: relative;
       aspect-ratio: 1;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
+      min-width: 0;
     }
 
-    .day-number { font-size: 0.85rem; font-weight: 700; }
-    .check-mark { font-size: 0.65rem; margin-top: 2px; font-weight: 900; display: none; }
+    .day-number { font-size: 0.8rem; font-weight: 700; }
+    .check-mark { font-size: 0.6rem; margin-top: 1px; font-weight: 900; display: none; }
 
     .day-tile.unchecked {
       background-color: var(--tile-unchecked);
@@ -229,7 +241,7 @@
     .day-tile.checked {
       background-color: var(--primary);
       color: #ffffff;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
       border: 1px solid #60a5fa;
     }
 
@@ -239,7 +251,7 @@
       background-color: var(--disabled-bg);
       color: var(--disabled-text);
       cursor: not-allowed;
-      border: 1px dashed rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
     }
 
     .stats-grid {
@@ -325,6 +337,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=1.0.2"></script>
 </body>
 </html>
