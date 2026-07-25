@@ -62,6 +62,33 @@
       font-weight: 600;
     }
 
+    /* Salary Input Field */
+    .input-container {
+      display: flex;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-container input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      font-weight: 700;
+      width: 100%;
+      outline: none;
+    }
+
+    .input-container span {
+      color: var(--text-sub);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
     .value-large {
       font-size: 1.85rem;
       font-weight: 800;
@@ -223,6 +250,15 @@
   <div class="card">
     <div class="header">🏠 Debt Freedom</div>
 
+    <!-- Monthly Earnings Setting Input -->
+    <div class="section" style="margin-bottom: 0.75rem;">
+      <div class="label">Monthly Net Earnings</div>
+      <div class="input-container">
+        <input type="text" id="monthly-salary-input" value="76,000,000" placeholder="0" />
+        <span>VND</span>
+      </div>
+    </div>
+
     <div class="section">
       <div class="label">Remaining Debt</div>
       <div class="value-large" id="remaining-debt">300,000,000 VND</div>
@@ -235,12 +271,12 @@
       <div class="progress-text" id="progress-percent">0%</div>
     </div>
 
-    <!-- Enhanced Next Milestone UI -->
+    <!-- Next Milestone UI -->
     <div class="milestone-box">
       <div class="label">Next Milestone</div>
       <div style="font-weight: 700; font-size: 1.05rem;" id="next-milestone">⬇ 200,000,000 VND</div>
       <div style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;" id="milestone-date">Target: -</div>
-      <div style="font-size: 0.85rem; color: #60a5fa; font-weight: 600; margin-top: 2px;" id="workdays-left">0 workdays to milestone</div>
+      <div style="font-size: 0.85rem; color: #60a5fa; font-weight: 600; margin-top: 2px;" id="workdays-left">0 workdays left</div>
     </div>
 
     <!-- Calendar UI -->
@@ -249,7 +285,10 @@
       <div class="calendar-container">
         <div class="calendar-header">
           <button class="nav-btn" id="prev-month">&lt;</button>
-          <div class="calendar-title" id="calendar-title">July 2026</div>
+          <div>
+            <div class="calendar-title" id="calendar-title">July 2026</div>
+            <div style="font-size: 0.7rem; color: var(--text-sub); text-align: center;" id="month-rate-subtitle">0 VND/day</div>
+          </div>
           <button class="nav-btn" id="next-month">&gt;</button>
         </div>
         <div class="calendar-grid" id="calendar-grid"></div>
