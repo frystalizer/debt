@@ -377,3 +377,51 @@ body {
   animation: flameFlicker 1.8s infinite ease-in-out;
   transform-origin: bottom center; /* Animates from the base like real fire */
 }
+
+/* Collapsible Section */
+.collapsible-section {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-top: 1.25rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.collapsible-summary {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none; /* Removes default browser arrow */
+  user-select: none;
+}
+
+/* Hide default marker in WebKit */
+.collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-summary .chevron {
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
+}
+
+/* Rotate chevron when open */
+.collapsible-section[open] .chevron {
+  transform: rotate(90deg);
+}
+
+.collapsible-content {
+  padding: 0 0.85rem 0.75rem 0.85rem;
+}
+
+.collapsible-content .input-group {
+  margin-bottom: 0; /* Align clean inside padded block */
+}
