@@ -101,6 +101,12 @@ function renderCalendar() {
     gridEl.appendChild(document.createElement("div"));
   }
 
+  // Real-time "Today" checker
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth();
+  const todayDay = today.getDate();
+
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
@@ -109,6 +115,11 @@ function renderCalendar() {
 
     const tile = document.createElement("div");
     tile.className = "day-tile";
+
+    // Attach "Today" white glow ring
+    if (currentYear === todayYear && currentMonth === todayMonth && day === todayDay) {
+      tile.classList.add("is-today");
+    }
 
     const numSpan = document.createElement("span");
     numSpan.className = "day-number";
@@ -231,8 +242,6 @@ function projectWorkdaysAhead(remainingDebtTarget) {
 
 function getNextMilestoneTarget(currentRemainingDebt) {
   if (currentRemainingDebt <= 0) return 0;
-  // Dynamic step: finds the next lower multiple of 100M
-  // e.g. 273M -> 200M | 195M -> 100M | 80M -> 0
   const nextTarget = Math.floor((currentRemainingDebt - 1) / MILESTONE_STEP) * MILESTONE_STEP;
   return Math.max(0, nextTarget);
 }
@@ -242,7 +251,6 @@ function updateTracker() {
   const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
   const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
 
-  // Determine the dynamic next milestone target
   const nextMilestoneTarget = getNextMilestoneTarget(remainingDebt);
   const debtToMilestone = Math.max(0, remainingDebt - nextMilestoneTarget);
   const milestoneProjection = projectWorkdaysAhead(debtToMilestone);
@@ -253,7 +261,6 @@ function updateTracker() {
   document.getElementById("progress-fill").style.width = `${progressPercent}%`;
   document.getElementById("progress-percent").textContent = `${progressPercent}%`;
 
-  // UI display for Milestone
   if (remainingDebt <= 0) {
     document.getElementById("next-milestone").textContent = `🎉 Fully Debt Free!`;
     document.getElementById("milestone-date").textContent = `Target: Complete`;
