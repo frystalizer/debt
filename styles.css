@@ -347,3 +347,33 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* Streak Fire Animation */
+@keyframes flameFlicker {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.4));
+  }
+  25% {
+    transform: scale(1.15) rotate(-4deg);
+    filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.8));
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+    filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.6));
+  }
+  75% {
+    transform: scale(1.18) rotate(-2deg);
+    filter: drop-shadow(0 0 7px rgba(249, 115, 22, 0.9));
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.4));
+  }
+}
+
+.fire-emoji {
+  display: inline-block;
+  animation: flameFlicker 1.8s infinite ease-in-out;
+  transform-origin: bottom center; /* Animates from the base like real fire */
+}
