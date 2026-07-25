@@ -1,5 +1,5 @@
 const INITIAL_DEBT = 300000000; 
-const NEXT_MILESTONE_TARGET = 200000000; 
+const MILESTONE_STEP = 100000000; // Decrements in 100M chunks
 
 // Start Constraint Anchor: July 15, 2026
 const START_YEAR = 2026;
@@ -229,12 +229,22 @@ function projectWorkdaysAhead(remainingDebtTarget) {
   };
 }
 
+function getNextMilestoneTarget(currentRemainingDebt) {
+  if (currentRemainingDebt <= 0) return 0;
+  // Dynamic step: finds the next lower multiple of 100M
+  // e.g. 273M -> 200M | 195M -> 100M | 80M -> 0
+  const nextTarget = Math.floor((currentRemainingDebt - 1) / MILESTONE_STEP) * MILESTONE_STEP;
+  return Math.max(0, nextTarget);
+}
+
 function updateTracker() {
   const totalEarned = calculateTotalEarned();
   const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
   const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
 
-  const debtToMilestone = Math.max(0, remainingDebt - NEXT_MILESTONE_TARGET);
+  // Determine the dynamic next milestone target
+  const nextMilestoneTarget = getNextMilestoneTarget(remainingDebt);
+  const debtToMilestone = Math.max(0, remainingDebt - nextMilestoneTarget);
   const milestoneProjection = projectWorkdaysAhead(debtToMilestone);
 
   const totalProjection = projectWorkdaysAhead(remainingDebt);
@@ -243,9 +253,16 @@ function updateTracker() {
   document.getElementById("progress-fill").style.width = `${progressPercent}%`;
   document.getElementById("progress-percent").textContent = `${progressPercent}%`;
 
-  document.getElementById("next-milestone").textContent = `⬇ ${NEXT_MILESTONE_TARGET.toLocaleString("vi-VN")} VND`;
-  document.getElementById("milestone-date").textContent = `Target: ${milestoneProjection.dateString}`;
-  document.getElementById("workdays-left").textContent = `${milestoneProjection.workdaysCount} workdays left`;
+  // UI display for Milestone
+  if (remainingDebt <= 0) {
+    document.getElementById("next-milestone").textContent = `🎉 Fully Debt Free!`;
+    document.getElementById("milestone-date").textContent = `Target: Complete`;
+    document.getElementById("workdays-left").textContent = `0 workdays left`;
+  } else {
+    document.getElementById("next-milestone").textContent = `⬇ ${nextMilestoneTarget.toLocaleString("vi-VN")} VND`;
+    document.getElementById("milestone-date").textContent = `Target: ${milestoneProjection.dateString}`;
+    document.getElementById("workdays-left").textContent = `${milestoneProjection.workdaysCount} workdays left`;
+  }
 
   document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
   document.getElementById("streak-count").textContent = `🔥 ${calculateStreak()} workdays`;
