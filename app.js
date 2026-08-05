@@ -6,9 +6,10 @@ const START_YEAR = 2026;
 const START_MONTH = 6; // July (0-indexed)
 const START_DAY = 15; 
 
-// Viewing state
-let currentYear = 2026;
-let currentMonth = 6; 
+// Dynamic Viewing State (Defaults to Current Real-World Date)
+const now = new Date();
+let currentYear = now.getFullYear();
+let currentMonth = now.getMonth(); 
 
 let monthlySalary = loadMonthlySalary();
 
@@ -111,13 +112,13 @@ function renderCalendar() {
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
-    const isBeforeStart = currentYear === START_YEAR && currentMonth === START_MONTH && day < START_DAY;
+    const isBeforeStart = currentYear < START_YEAR || (currentYear === START_YEAR && (currentMonth < START_MONTH || (currentMonth === START_MONTH && day < START_DAY)));
     const isDisabled = isBeforeStart || isWeekend;
 
     const tile = document.createElement("div");
     tile.className = "day-tile";
 
-    // Attach "Today" white glow ring
+    // Attach "Today" indicator
     if (currentYear === todayYear && currentMonth === todayMonth && day === todayDay) {
       tile.classList.add("is-today");
     }
@@ -153,7 +154,7 @@ function renderCalendar() {
           tile.classList.remove("unchecked");
           tile.classList.add("checked");
       
-          // ✨ Pop animation when checking a day
+          // Pop animation when checking a day
           tile.animate(
             [
               { transform: "scale(0.92)" },
@@ -186,7 +187,11 @@ function renderCalendar() {
 }
 
 function getLatestCheckedDate() {
-  if (checkedKeys.size === 0) return new Date(2026, 6, 24);
+  if (checkedKeys.size === 0) {
+    const today = new Date();
+    const startDate = new Date(START_YEAR, START_MONTH, START_DAY);
+    return today > startDate ? today : startDate;
+  }
   const sorted = Array.from(checkedKeys).sort();
   const latestKey = sorted[sorted.length - 1];
   const [y, m, d] = latestKey.split('-').map(Number);
@@ -285,19 +290,13 @@ function showToast(amount, workdaysLeft) {
   const toast = document.getElementById("toast");
   if (!toast) return;
 
-  // Pick a random message from the array
   const randomMessage = toastMessages[Math.floor(Math.random() * toastMessages.length)];
 
   document.getElementById("toast-amount").textContent = `+${amount.toFixed(2)}M`;
-  
-  // Set the randomly selected message
   document.querySelector("#toast .toast-message").textContent = randomMessage;
-
   document.getElementById("toast-sub").textContent = `${workdaysLeft} workdays left`;
 
   toast.classList.remove("hidden");
-
-  // Restart CSS animation/transition if triggered in quick succession
   toast.classList.remove("show");
   void toast.offsetWidth; // Trigger reflow
 
@@ -325,7 +324,6 @@ function updateTracker() {
 
   const totalProjection = projectWorkdaysAhead(remainingDebt);
 
-  // --- NEW: Huge M view + exact subtext ---
   const remainingMillions = (remainingDebt / 1000000).toFixed(1);
   document.getElementById("remaining-debt-large").textContent = `${remainingMillions}M`;
   document.getElementById("remaining-debt-exact").textContent = `${Math.round(remainingDebt).toLocaleString("vi-VN")} VND`;
