@@ -116,11 +116,13 @@ body {
 .progress-container { margin: 0.75rem 0 1.25rem 0; }
 
 .progress-bar-bg {
+  position: relative;
   background-color: var(--border-color);
-  height: 10px;
-  border-radius: 5px;
+  height: 22px;
+  border-radius: 11px;
   overflow: hidden;
-  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
 }
 
 .progress-bar-fill {
@@ -128,12 +130,19 @@ body {
   height: 100%;
   width: 0%;
   transition: width 0.3s ease;
+  border-radius: 11px;
 }
 
-.progress-text {
-  text-align: right;
-  font-weight: 700;
-  font-size: 0.8rem;
+.progress-text-inside {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .milestone-box {
@@ -144,7 +153,7 @@ body {
   margin-bottom: 1.25rem;
 }
 
-/* Calendar Container & Grid */
+/* Calendar Container & Fixed Height Grid */
 .calendar-container {
   background-color: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
@@ -197,8 +206,12 @@ body {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  /* Force 1 header row + 6 explicit equal week rows */
+  grid-template-rows: auto repeat(6, 1fr);
   gap: 3px;
   width: 100%;
+  /* Ensures grid space accommodates 6 weeks without collapsing */
+  min-height: 285px; 
 }
 
 .weekday {
@@ -241,7 +254,7 @@ body {
 
 /* --- CALENDAR STATES --- */
 
-/* 1. Unchecked Future Days (Slightly Darker) */
+/* 1. Unchecked Future Days */
 .day-tile.unchecked {
   background-color: var(--tile-unchecked);
   color: #64748b;
@@ -253,7 +266,7 @@ body {
   color: #cbd5e1;
 }
 
-/* 2. Checked Days (Bright Blue) */
+/* 2. Checked Days */
 .day-tile.checked {
   background-color: var(--primary);
   color: #ffffff;
@@ -266,7 +279,7 @@ body {
   color: #ffffff;
 }
 
-/* 3. Today Tile (White Glowing Border) */
+/* 3. Today Tile */
 .day-tile.is-today {
   border: 2px solid #ffffff !important;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), inset 0 0 4px rgba(255, 255, 255, 0.3) !important;
@@ -278,7 +291,7 @@ body {
   font-weight: 900;
 }
 
-/* Disabled Days (e.g. past start anchor / weekends) */
+/* Disabled Days */
 .day-tile.disabled {
   background-color: var(--disabled-bg);
   color: var(--disabled-text);
@@ -375,7 +388,7 @@ body {
 .fire-emoji {
   display: inline-block;
   animation: flameFlicker 1.8s infinite ease-in-out;
-  transform-origin: bottom center; /* Animates from the base like real fire */
+  transform-origin: bottom center;
 }
 
 /* Collapsible Section */
@@ -399,11 +412,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  list-style: none; /* Removes default browser arrow */
+  list-style: none;
   user-select: none;
 }
 
-/* Hide default marker in WebKit */
 .collapsible-summary::-webkit-details-marker {
   display: none;
 }
@@ -413,7 +425,6 @@ body {
   transition: transform 0.2s ease;
 }
 
-/* Rotate chevron when open */
 .collapsible-section[open] .chevron {
   transform: rotate(90deg);
 }
@@ -423,39 +434,5 @@ body {
 }
 
 .collapsible-content .input-group {
-  margin-bottom: 0; /* Align clean inside padded block */
-}
-
-.progress-container {
-  margin: 0.75rem 0 1.25rem 0;
-}
-
-.progress-bar-bg {
-  position: relative;
-  background-color: var(--border-color);
-  height: 22px; /* Enlarged height */
-  border-radius: 11px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-
-.progress-bar-fill {
-  background-color: #3b82f6;
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
-  border-radius: 11px;
-}
-
-.progress-text-inside {
-  position: absolute;
-  width: 100%;
-  text-align: center;
-  font-weight: 800;
-  font-size: 0.75rem;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); /* Keeps text legible over dark or light background */
-  pointer-events: none;
-  z-index: 2;
+  margin-bottom: 0;
 }
