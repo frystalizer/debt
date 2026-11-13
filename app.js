@@ -372,6 +372,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const prevBtn = document.getElementById("prev-month");
   const nextBtn = document.getElementById("next-month");
 
+  // Initialize Calendar Start Date picker
+  const calendarStartDateInput = document.getElementById("calendar-start-date-input");
+  if (calendarStartDateInput) {
+    // Set default picker value to the current active year/month
+    calendarStartDateInput.value = formatDateKey(currentYear, currentMonth, 1);
+  
+    // Update calendar view when a date is selected
+    calendarStartDateInput.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (!val) return;
+  
+      const [y, m] = val.split('-').map(Number);
+      currentYear = y;
+      currentMonth = m - 1; // JS months are 0-indexed
+  
+      renderCalendar();
+      renderUpcomingTasks();
+    });
+  }
+
   if (salaryInput) {
     salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
 
