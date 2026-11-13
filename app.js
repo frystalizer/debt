@@ -1,9 +1,9 @@
 // Local Storage Keys
 const STORAGE_TASKS_KEY = "scheduler_tasks_list";
 const STORAGE_COMPLETED_KEY = "scheduler_completed_keys";
+const STORAGE_DEBT_KEY = "debt_tracker_total_debt";
+const STORAGE_SALARY_KEY = "debt_tracker_monthly_salary";
 
-// Constants & Debt Tracker State
-const INITIAL_DEBT = 300000000; 
 const MILESTONE_STEP = 100000000; // Decrements in 100M chunks
 
 // Dynamic Start Constraint Anchor (Defaults to July 15, 2026)
@@ -19,14 +19,24 @@ let selectedColor = "#f97316";
 let selectedDate = null;
 
 let monthlySalary = loadMonthlySalary();
+let initialDebt = loadTotalDebt();
 
 function loadMonthlySalary() {
-  const saved = localStorage.getItem("debt_tracker_monthly_salary");
+  const saved = localStorage.getItem(STORAGE_SALARY_KEY);
   return saved ? parseFloat(saved) : 76000000;
 }
 
 function saveMonthlySalary(amount) {
-  localStorage.setItem("debt_tracker_monthly_salary", amount);
+  localStorage.setItem(STORAGE_SALARY_KEY, amount);
+}
+
+function loadTotalDebt() {
+  const saved = localStorage.getItem(STORAGE_DEBT_KEY);
+  return saved ? parseFloat(saved) : 300000000;
+}
+
+function saveTotalDebt(amount) {
+  localStorage.setItem(STORAGE_DEBT_KEY, amount);
 }
 
 function loadTasks() {
@@ -191,7 +201,6 @@ function renderCalendar() {
     const dateKeyStr = formatDateKey(currentYear, currentMonth, day);
     const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
     
-    // Check if tile is before dynamic calendarStartDate
     const isBeforeStart = dayDate < calendarStartDate;
     const isDisabled = isBeforeStart || isWeekend;
 
@@ -257,7 +266,6 @@ function renderCalendar() {
       }
 
       tile.addEventListener("click", () => {
-        // Toggle selected date filter
         if (selectedDate && 
             selectedDate.getFullYear() === currentYear && 
             selectedDate.getMonth() === currentMonth && 
@@ -267,7 +275,6 @@ function renderCalendar() {
           selectedDate = new Date(currentYear, currentMonth, day);
         }
 
-        // Toggle work checkmark
         if (checkedKeys.has(dateKeyStr)) {
           checkedKeys.delete(dateKeyStr);  
           tile.classList.remove("checked");
@@ -289,7 +296,7 @@ function renderCalendar() {
           const curRate = getDailyRateForMonth(currentYear, currentMonth);
           const earnedMillions = curRate / 1000000;
           const totalEarned = calculateTotalEarned();
-          const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
+          const remainingDebt = Math.max(0, initialDebt - totalEarned);
           const projection = projectWorkdaysAhead(remainingDebt);
 
           showToast(earnedMillions, projection.workdaysCount);
@@ -673,8 +680,8 @@ function showToastMessage(title, sub) {
 
 function updateTracker() {
   const totalEarned = calculateTotalEarned();
-  const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
-  const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
+  const remainingDebt = Math.max(0, initialDebt - totalEarned);
+  const progressPercent = Math.min(100, Math.round((totalEarned / initialDebt) * 100));
 
   const nextMilestoneTarget = getNextMilestoneTarget(remainingDebt);
   const debtToMilestone = Math.max(0, remainingDebt - nextMilestoneTarget);
@@ -739,9 +746,28 @@ function applyNewSalary() {
   updateTracker();
 }
 
+function applyNewDebt() {
+  const debtInput = document.getElementById("total-debt-input");
+  if (!debtInput) return;
+
+  const rawValue = debtInput.value.replace(/[^0-9]/g, "");
+  const parsed = parseFloat(rawValue) || 0;
+
+  initialDebt = parsed;
+  saveTotalDebt(parsed);
+
+  debtInput.value = parsed > 0 ? parsed.toLocaleString("vi-VN") : "";
+
+  renderCalendar();
+  updateTracker();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const salaryInput = document.getElementById("monthly-salary-input");
-  const applyBtn = document.getElementById("apply-salary-btn");
+  const applySalaryBtn = document.getElementById("apply-salary-btn");
+  const debtInput = document.getElementById("total-debt-input");
+  const applyDebtBtn = document.getElementById("apply-debt-btn");
+
   const prevBtn = document.getElementById("prev-month");
   const nextBtn = document.getElementById("next-month");
   const openModalBtn = document.getElementById("open-modal-btn");
@@ -754,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const colorPicker = document.getElementById("color-picker");
   const resetFilterBtn = document.getElementById("reset-filter-btn");
 
-  // Calendar Start Date Picker inside collapsible details
+  // Calendar Start Date Picker
   const calendarStartDateInput = document.getElementById("calendar-start-date-input");
   if (calendarStartDateInput) {
     const initialKey = formatDateKey(calendarStartDate.getFullYear(), calendarStartDate.getMonth(), calendarStartDate.getDate());
@@ -846,19 +872,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Monthly Salary Handlers
   if (salaryInput) {
     salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
-
     salaryInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        applyNewSalary();
-      }
+      if (e.key === "Enter") applyNewSalary();
     });
   }
+  if (applySalaryBtn) applySalaryBtn.addEventListener("click", applyNewSalary);
 
-  if (applyBtn) {
-    applyBtn.addEventListener("click", applyNewSalary);
+  // Total Debt Handlers
+  if (debtInput) {
+    debtInput.value = Math.round(initialDebt).toLocaleString("vi-VN");
+    debtInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") applyNewDebt();
+    });
   }
+  if (applyDebtBtn) applyDebtBtn.addEventListener("click", applyNewDebt);
 
   if (prevBtn) {
     prevBtn.addEventListener("click", () => {
