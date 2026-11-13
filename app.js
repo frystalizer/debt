@@ -1,15 +1,22 @@
+// Local Storage Keys
+const STORAGE_TASKS_KEY = "scheduler_tasks_list";
+const STORAGE_COMPLETED_KEY = "scheduler_completed_keys";
+
+// Constants & Debt Tracker State
 const INITIAL_DEBT = 300000000; 
 const MILESTONE_STEP = 100000000; // Decrements in 100M chunks
 
-// Start Constraint Anchor: July 15, 2026
-const START_YEAR = 2026;
-const START_MONTH = 6; // July (0-indexed)
-const START_DAY = 15; 
+// Dynamic Start Constraint Anchor (Defaults to July 15, 2026)
+let calendarStartDate = new Date(2026, 6, 15); // Month is 0-indexed (6 = July)
 
 // Dynamic Viewing State (Defaults to Current Real-World Date)
 const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth(); 
+let selectedColor = "#f97316";
+
+// Selected Date for Filter (null = default "Today & Overdue")
+let selectedDate = null;
 
 let monthlySalary = loadMonthlySalary();
 
@@ -21,6 +28,41 @@ function loadMonthlySalary() {
 function saveMonthlySalary(amount) {
   localStorage.setItem("debt_tracker_monthly_salary", amount);
 }
+
+function loadTasks() {
+  const saved = localStorage.getItem(STORAGE_TASKS_KEY);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error("Failed to parse tasks", e);
+    }
+  }
+  return [];
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem(STORAGE_TASKS_KEY, JSON.stringify(tasks));
+}
+
+function loadCompletedKeys() {
+  const saved = localStorage.getItem(STORAGE_COMPLETED_KEY);
+  if (saved) {
+    try {
+      return new Set(JSON.parse(saved));
+    } catch (e) {
+      console.error("Failed to parse completion records", e);
+    }
+  }
+  return new Set();
+}
+
+function saveCompletedKeys(completedSet) {
+  localStorage.setItem(STORAGE_COMPLETED_KEY, JSON.stringify(Array.from(completedSet)));
+}
+
+let tasks = loadTasks();
+let completedKeys = loadCompletedKeys();
 
 function formatDateKey(year, month, day) {
   const m = String(month + 1).padStart(2, '0');
@@ -63,6 +105,37 @@ function getDailyRateForMonth(year, month) {
   return workdays > 0 ? monthlySalary / workdays : 0;
 }
 
+function isTaskDueOnDate(task, dateObj) {
+  if (!task.startDate) return false;
+
+  const targetKey = formatDateKey(
+    dateObj.getFullYear(),
+    dateObj.getMonth(),
+    dateObj.getDate()
+  );
+
+  const interval = Number(task.intervalDays);
+
+  if (interval === 0 || isNaN(interval)) {
+    return task.startDate === targetKey;
+  }
+
+  const [startYear, startMonth, startDay] = task.startDate.split('-').map(Number);
+  const start = new Date(startYear, startMonth - 1, startDay);
+  const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+  if (target < start) return false;
+
+  const diffTime = target.getTime() - start.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays % interval === 0;
+}
+
+function getTasksForDate(dateObj) {
+  return tasks.filter(task => isTaskDueOnDate(task, dateObj));
+}
+
 function renderCalendar() {
   const gridEl = document.getElementById("calendar-grid");
   const titleEl = document.getElementById("calendar-title");
@@ -84,8 +157,11 @@ function renderCalendar() {
     subtitleEl.textContent = `${rateInMillions}M/day (${workdays} days)`;
   }
 
+  const startYearThreshold = calendarStartDate.getFullYear();
+  const startMonthThreshold = calendarStartDate.getMonth();
+
   if (prevBtn) {
-    prevBtn.disabled = (currentYear === START_YEAR && currentMonth === START_MONTH);
+    prevBtn.disabled = (currentYear === startYearThreshold && currentMonth === startMonthThreshold);
   }
 
   ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach(d => {
@@ -95,15 +171,16 @@ function renderCalendar() {
     gridEl.appendChild(div);
   });
 
-  const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+  let firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+  const padding = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
   const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const padding = (firstDayIndex + 6) % 7; 
 
   for (let i = 0; i < padding; i++) {
-    gridEl.appendChild(document.createElement("div"));
+    const padTile = document.createElement("div");
+    padTile.className = "day-tile empty";
+    gridEl.appendChild(padTile);
   }
 
-  // Real-time "Today" checker
   const today = new Date();
   const todayYear = today.getFullYear();
   const todayMonth = today.getMonth();
@@ -111,16 +188,30 @@ function renderCalendar() {
 
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
+    const dateKeyStr = formatDateKey(currentYear, currentMonth, day);
     const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
-    const isBeforeStart = currentYear < START_YEAR || (currentYear === START_YEAR && (currentMonth < START_MONTH || (currentMonth === START_MONTH && day < START_DAY)));
+    
+    // Check if tile is before dynamic calendarStartDate
+    const isBeforeStart = dayDate < calendarStartDate;
     const isDisabled = isBeforeStart || isWeekend;
 
     const tile = document.createElement("div");
-    tile.className = "day-tile";
 
-    // Attach "Today" indicator
+    if (isDisabled) {
+      tile.className = "day-tile disabled";
+    } else {
+      tile.className = "day-tile clickable";
+    }
+
     if (currentYear === todayYear && currentMonth === todayMonth && day === todayDay) {
       tile.classList.add("is-today");
+    }
+
+    if (selectedDate && 
+        selectedDate.getFullYear() === currentYear && 
+        selectedDate.getMonth() === currentMonth && 
+        selectedDate.getDate() === day) {
+      tile.classList.add("is-selected");
     }
 
     const numSpan = document.createElement("span");
@@ -128,310 +219,60 @@ function renderCalendar() {
     numSpan.textContent = day;
     tile.appendChild(numSpan);
 
-    if (isDisabled) {
-      tile.classList.add("disabled");
-    } else {
+    const dueTasks = getTasksForDate(dayDate);
+    if (dueTasks.length > 0 && !isBeforeStart) {
+      tile.classList.add("has-task");
+      const indicator = document.createElement("div");
+      indicator.className = "task-dots";
+
+      let allDone = true;
+      dueTasks.forEach(task => {
+        const key = `${task.id}_${dateKeyStr}`;
+        if (!completedKeys.has(key)) allDone = false;
+      });
+
+      if (allDone) {
+        tile.classList.add("all-completed");
+      }
+
+      indicator.innerHTML = dueTasks.map(task => {
+        const isDone = completedKeys.has(`${task.id}_${dateKeyStr}`);
+        const dotColor = isDone ? 'var(--accent-green)' : (task.color || 'var(--accent)');
+        return `<span class="dot" style="background-color: ${dotColor};"></span>`;
+      }).join('');
+      
+      tile.appendChild(indicator);
+    }
+
+    if (!isDisabled) {
       const checkSpan = document.createElement("span");
       checkSpan.className = "check-mark";
       checkSpan.textContent = "✓";
       tile.appendChild(checkSpan);
 
-      const dateKey = formatDateKey(currentYear, currentMonth, day);
-
-      if (checkedKeys.has(dateKey)) {
+      if (checkedKeys.has(dateKeyStr)) {
         tile.classList.add("checked");
       } else {
         tile.classList.add("unchecked");
       }
 
       tile.addEventListener("click", () => {
-        if (checkedKeys.has(dateKey)) {
-          checkedKeys.delete(dateKey);  
+        // Toggle selected date filter
+        if (selectedDate && 
+            selectedDate.getFullYear() === currentYear && 
+            selectedDate.getMonth() === currentMonth && 
+            selectedDate.getDate() === day) {
+          selectedDate = null;
+        } else {
+          selectedDate = new Date(currentYear, currentMonth, day);
+        }
+
+        // Toggle work checkmark
+        if (checkedKeys.has(dateKeyStr)) {
+          checkedKeys.delete(dateKeyStr);  
           tile.classList.remove("checked");
           tile.classList.add("unchecked");
         } else {
-          checkedKeys.add(dateKey);
+          checkedKeys.add(dateKeyStr);
           tile.classList.remove("unchecked");
-          tile.classList.add("checked");
-      
-          // Pop animation when checking a day
-          tile.animate(
-            [
-              { transform: "scale(0.92)" },
-              { transform: "scale(1.08)" },
-              { transform: "scale(1)" }
-            ],
-            {
-              duration: 250,
-              easing: "ease-out"
-            }
-          );
-      
-          // Show toast notification
-          const dailyRate = getDailyRateForMonth(currentYear, currentMonth);
-          const earnedMillions = dailyRate / 1000000;
-          
-          const totalEarned = calculateTotalEarned();
-          const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
-          const projection = projectWorkdaysAhead(remainingDebt);
-      
-          showToast(earnedMillions, projection.workdaysCount);
-        }
-        saveDays();
-        updateTracker();
-      });
-    }
-
-    gridEl.appendChild(tile);
-  }
-}
-
-function getLatestCheckedDate() {
-  if (checkedKeys.size === 0) {
-    const today = new Date();
-    const startDate = new Date(START_YEAR, START_MONTH, START_DAY);
-    return today > startDate ? today : startDate;
-  }
-  const sorted = Array.from(checkedKeys).sort();
-  const latestKey = sorted[sorted.length - 1];
-  const [y, m, d] = latestKey.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function calculateTotalEarned() {
-  let totalEarned = 0;
-  checkedKeys.forEach(dateKey => {
-    const [y, m] = dateKey.split('-').map(Number);
-    totalEarned += getDailyRateForMonth(y, m - 1);
-  });
-  return totalEarned;
-}
-
-function calculateStreak() {
-  let streak = 0;
-  let checkDate = getLatestCheckedDate();
-
-  while (true) {
-    const isWeekend = checkDate.getDay() === 0 || checkDate.getDay() === 6;
-    const year = checkDate.getFullYear();
-    const month = checkDate.getMonth();
-    const day = checkDate.getDate();
-
-    if (year < START_YEAR || (year === START_YEAR && month === START_MONTH && day < START_DAY)) {
-      break;
-    }
-
-    if (!isWeekend) {
-      const dateKey = formatDateKey(year, month, day);
-      if (checkedKeys.has(dateKey)) {
-        streak++;
-      } else if (streak > 0) {
-        break;
-      }
-    }
-
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-  return streak;
-}
-
-function projectWorkdaysAhead(remainingDebtTarget) {
-  if (remainingDebtTarget <= 0) {
-    return {
-      dateString: "Achieved! 🎉",
-      workdaysCount: 0
-    };
-  }
-
-  let currentDate = getLatestCheckedDate();
-  let accumulatedEarning = 0;
-  let workdaysCount = 0;
-
-  while (accumulatedEarning < remainingDebtTarget) {
-    currentDate.setDate(currentDate.getDate() + 1);
-    const dayOfWeek = currentDate.getDay();
-
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      const y = currentDate.getFullYear();
-      const m = currentDate.getMonth();
-      accumulatedEarning += getDailyRateForMonth(y, m);
-      workdaysCount++;
-    }
-  }
-
-  return {
-    dateString: currentDate.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }),
-    workdaysCount: workdaysCount
-  };
-}
-
-function getNextMilestoneTarget(currentRemainingDebt) {
-  if (currentRemainingDebt <= 0) return 0;
-  const nextTarget = Math.floor((currentRemainingDebt - 1) / MILESTONE_STEP) * MILESTONE_STEP;
-  return Math.max(0, nextTarget);
-}
-
-const toastMessages = [
-  "🎉 Great work!",
-  "💪 Keep going!",
-  "🏠 One step closer.",
-  "🔥 Streak continues!",
-  "🚀 Nice progress!",
-  "📈 You're getting there!"
-];
-
-let toastTimeout;
-
-function showToast(amount, workdaysLeft) {
-  const toast = document.getElementById("toast");
-  if (!toast) return;
-
-  const randomMessage = toastMessages[Math.floor(Math.random() * toastMessages.length)];
-
-  document.getElementById("toast-amount").textContent = `+${amount.toFixed(2)}M`;
-  document.querySelector("#toast .toast-message").textContent = randomMessage;
-  document.getElementById("toast-sub").textContent = `${workdaysLeft} workdays left`;
-
-  toast.classList.remove("hidden");
-  toast.classList.remove("show");
-  void toast.offsetWidth; // Trigger reflow
-
-  toast.classList.add("show");
-
-  clearTimeout(toastTimeout);
-
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("show");
-
-    setTimeout(() => {
-      toast.classList.add("hidden");
-    }, 350);
-  }, 2000);
-}
-
-function updateTracker() {
-  const totalEarned = calculateTotalEarned();
-  const remainingDebt = Math.max(0, INITIAL_DEBT - totalEarned);
-  const progressPercent = Math.min(100, Math.round((totalEarned / INITIAL_DEBT) * 100));
-
-  const nextMilestoneTarget = getNextMilestoneTarget(remainingDebt);
-  const debtToMilestone = Math.max(0, remainingDebt - nextMilestoneTarget);
-  const milestoneProjection = projectWorkdaysAhead(debtToMilestone);
-
-  const totalProjection = projectWorkdaysAhead(remainingDebt);
-
-  const remainingMillions = (remainingDebt / 1000000).toFixed(1);
-  document.getElementById("remaining-debt-large").textContent = `${remainingMillions}M`;
-  document.getElementById("remaining-debt-exact").textContent = `${Math.round(remainingDebt).toLocaleString("vi-VN")} VND`;
-
-  document.getElementById("progress-fill").style.width = `${progressPercent}%`;
-  document.getElementById("progress-percent").textContent = `${progressPercent}%`;
-
-  if (remainingDebt <= 0) {
-    document.getElementById("next-milestone").textContent = `🎉 Fully Debt Free!`;
-    document.getElementById("milestone-date").textContent = `Target: Complete`;
-    document.getElementById("workdays-left").textContent = `0 workdays left`;
-  } else {
-    document.getElementById("next-milestone").textContent = `⬇ ${nextMilestoneTarget.toLocaleString("vi-VN")} VND`;
-    document.getElementById("milestone-date").textContent = `Target: ${milestoneProjection.dateString}`;
-    document.getElementById("workdays-left").textContent = `${milestoneProjection.workdaysCount} workdays left`;
-  }
-
-  document.getElementById("total-earned").textContent = `${(totalEarned / 1000000).toFixed(2)}M`;
-  
-  const streak = calculateStreak();
-  document.getElementById("streak-count").innerHTML = `<span class="fire-emoji">🔥</span> ${streak} workdays`;
-
-  document.getElementById("projected-date").textContent = totalProjection.dateString;
-  document.getElementById("total-workdays-left").textContent = `${totalProjection.workdaysCount} total workdays remaining`;
-}
-
-function applyNewSalary() {
-  const salaryInput = document.getElementById("monthly-salary-input");
-  if (!salaryInput) return;
-
-  const rawValue = salaryInput.value.replace(/[^0-9]/g, "");
-  const parsed = parseFloat(rawValue) || 0;
-
-  monthlySalary = parsed;
-  saveMonthlySalary(parsed);
-
-  salaryInput.value = parsed > 0 ? parsed.toLocaleString("vi-VN") : "";
-
-  renderCalendar();
-  updateTracker();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const salaryInput = document.getElementById("monthly-salary-input");
-  const applyBtn = document.getElementById("apply-salary-btn");
-  const prevBtn = document.getElementById("prev-month");
-  const nextBtn = document.getElementById("next-month");
-
-  // Initialize Calendar Start Date picker
-  const calendarStartDateInput = document.getElementById("calendar-start-date-input");
-  if (calendarStartDateInput) {
-    // Set default picker value to the current active year/month
-    calendarStartDateInput.value = formatDateKey(currentYear, currentMonth, 1);
-  
-    // Update calendar view when a date is selected
-    calendarStartDateInput.addEventListener("change", (e) => {
-      const val = e.target.value;
-      if (!val) return;
-  
-      const [y, m] = val.split('-').map(Number);
-      currentYear = y;
-      currentMonth = m - 1; // JS months are 0-indexed
-  
-      renderCalendar();
-      renderUpcomingTasks();
-    });
-  }
-
-  if (salaryInput) {
-    salaryInput.value = Math.round(monthlySalary).toLocaleString("vi-VN");
-
-    salaryInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        applyNewSalary();
-      }
-    });
-  }
-
-  if (applyBtn) {
-    applyBtn.addEventListener("click", applyNewSalary);
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener("click", () => {
-      if (currentYear > START_YEAR || (currentYear === START_YEAR && currentMonth > START_MONTH)) {
-        if (currentMonth === 0) {
-          currentMonth = 11;
-          currentYear--;
-        } else {
-          currentMonth--;
-        }
-        renderCalendar();
-      }
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener("click", () => {
-      if (currentMonth === 11) {
-        currentMonth = 0;
-        currentYear++;
-      } else {
-        currentMonth++;
-      }
-      renderCalendar();
-    });
-  }
-
-  renderCalendar();
-  updateTracker();
-});
+          tile.classList.
