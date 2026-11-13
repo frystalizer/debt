@@ -436,3 +436,13 @@ body {
 .collapsible-content .input-group {
   margin-bottom: 0;
 }
+
+/* Styling for Start Date picker inside collapsible container */
+input[type="date"]#calendar-start-date-input.form-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  text-align: center;
+  min-height: 40px;
+}
