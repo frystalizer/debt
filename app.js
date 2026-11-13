@@ -335,8 +335,13 @@ function getLatestCheckedDate() {
 function calculateTotalEarned() {
   let totalEarned = 0;
   checkedKeys.forEach(dateKey => {
-    const [y, m] = dateKey.split('-').map(Number);
-    totalEarned += getDailyRateForMonth(y, m - 1);
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+
+    // Only add earnings for dates on or after the active calendarStartDate
+    if (dateObj >= calendarStartDate) {
+      totalEarned += getDailyRateForMonth(y, m - 1);
+    }
   });
   return totalEarned;
 }
